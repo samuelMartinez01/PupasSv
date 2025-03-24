@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="3.0" xmlns="https://jakarta.ee/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+  <persistence-unit name="PupaTest" transaction-type="RESOURCE_LOCAL">
+    <class>sv.edu.ues.ingenieria.tpi135.pupassv.entity.Combo</class>
+    <class>sv.edu.ues.ingenieria.tpi135.pupassv.entity.ComboDetalle</class>
+    <class>sv.edu.ues.ingenieria.tpi135.pupassv.entity.OrdenDetalle</class>
+    <class>sv.edu.ues.ingenieria.tpi135.pupassv.entity.Pago</class>
+    <class>sv.edu.ues.ingenieria.tpi135.pupassv.entity.PagoDetalle</class>
+    <class>sv.edu.ues.ingenieria.tpi135.pupassv.entity.Producto</class>
+    <class>sv.edu.ues.ingenieria.tpi135.pupassv.entity.ProductoDetalle</class>
+    <class>sv.edu.ues.ingenieria.tpi135.pupassv.entity.ProductoPrecio</class>
+    <class>sv.edu.ues.ingenieria.tpi135.pupassv.entity.TipoProducto</class>
+    <class>sv.edu.ues.ingenieria.tpi135.pupassv.entity.Orden</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+    <!-- proveedor de persitencia -->
+    <properties>
+      <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/PupasBd_tpi2025"/>
+      <property name="jakarta.persistence.jdbc.user" value="postgres"/>
+      <property name="jakarta.persistence.jdbc.password" value="abc123"/>
+      <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+    </properties>
+  </persistence-unit>
+</persistence>

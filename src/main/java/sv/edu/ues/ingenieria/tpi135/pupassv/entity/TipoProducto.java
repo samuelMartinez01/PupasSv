@@ -4,6 +4,7 @@
  */
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -101,6 +102,7 @@ public class TipoProducto implements Serializable {
     }
 
     @XmlTransient
+    @JsonIgnore
     public List<ProductoDetalle> getProductoDetalleList() {
         return productoDetalleList;
     }

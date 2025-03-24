@@ -4,6 +4,8 @@
  */
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

@@ -76,9 +76,10 @@ public abstract class AbstractDataAccess<T> {
             if (em == null) {
                 throw new IllegalStateException("EntityManager no disponible");
             }
+            System.out.println("Buscando ID: " + id + " de tipo: " + id.getClass().getSimpleName());
             return (T) em.find(tipoDato, id);
         } catch (Exception ex) {
-            throw new IllegalStateException("Error al buscar la entidad", ex);
+            throw new IllegalStateException("Error al buscar el id en la entidad", ex);
         }
     }
 
@@ -135,18 +136,18 @@ public abstract class AbstractDataAccess<T> {
 
     /**
      * Elimina una entidad de la base de datos.
-     * @param registro Entidad a eliminar.
+     * @param id Entidad a eliminar por id.
      * @throws IllegalArgumentException Si la entidad es nula.
      * @throws IllegalStateException Si no hay EntityManager disponible.
      */
-    public void delete(T registro) throws IllegalStateException, IllegalArgumentException {
-        if (registro != null) {
+    public void delete(Object id) throws IllegalStateException, IllegalArgumentException {
+        if (id != null) {
             EntityManager em = getEntityManager();
             if (em != null) {
-                if (!em.contains(registro)) {
-                    registro = em.merge(registro);
+                if (!em.contains(id )) {
+                   id = em.merge(id);
                 }
-                em.remove(registro);
+                em.remove(id);
                 return;
             } else {
                 throw new IllegalStateException("EntityManager no disponible");
