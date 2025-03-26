@@ -49,25 +49,6 @@ import java.util.Date;
                     .withExposedPorts(5432)
                     .withNetworkAliases("db");
             
-//            static MountableFile war = MountableFile.forHostPath(Paths.get("target/PupasSv-1.0-SNAPSHOT.war").toAbsolutePath());
-//
-//            @Container
-//            static GenericContainer openliberty = new GenericContainer("pupa-image")
-//                    .withExposedPorts(9080)
-//                    .withCopyFileToContainer(war, "/opt/ol/wlp/usr/servers/defaultServer/dropins/")
-//                    .withNetwork(red)
-//                    .withEnv("PGPASSWORD", "abc123")
-//                    .withEnv("PGUSER", "postgres")
-//                    .withEnv("PGDBNAME", "PupasBd_2025")
-//                    .withEnv("PGPORT", "5432")
-//                    .withEnv("PGSERVER", "db")
-//                    .dependsOn(postgres)
-//                    .waitingFor(Wait.forLogMessage(".*server is ready to run a smarter planet.*",1));
-//
-//
-//
-//
-            
         @BeforeAll
         public void init() {
             System.out.println("Su puerto es:  " + postgres.getMappedPort(5432));
@@ -114,6 +95,8 @@ import java.util.Date;
                 assertNotNull(nuevo.getIdOrden());
                 assertEquals(esperado, cut.count());
             }
+
+
 
 
 

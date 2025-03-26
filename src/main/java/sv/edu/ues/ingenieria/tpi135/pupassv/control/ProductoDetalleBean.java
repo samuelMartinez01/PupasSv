@@ -6,9 +6,11 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ProductoDetalle;
 
+import java.io.Serializable;
+
 @Stateless
 @LocalBean
-public class ProductoDetalleBean extends AbstractDataAccess<ProductoDetalle> {
+public class ProductoDetalleBean extends AbstractDataAccess<ProductoDetalle> implements Serializable {
     @PersistenceContext(unitName = "PupaSV-PU")
     EntityManager em;
 

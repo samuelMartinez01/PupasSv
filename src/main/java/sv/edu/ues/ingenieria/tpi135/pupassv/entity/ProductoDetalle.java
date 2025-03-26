@@ -4,6 +4,7 @@
  */
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
+import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -56,7 +57,7 @@ public class ProductoDetalle implements Serializable {
     public ProductoDetalle(int idTipoProducto, long idProducto) {
         this.productoDetallePK = new ProductoDetallePK(idTipoProducto, idProducto);
     }
-
+    @JsonbTransient
     public ProductoDetallePK getProductoDetallePK() {
         return productoDetallePK;
     }

@@ -64,4 +64,7 @@ public class Headers {
      * Permite definir políticas como `no-cache`, `private`, `public`, o tiempos de expiración.
      */
     public static final String CACHE_CONTROL = "Cache-Control";
+
+
+    public static final String X_DELETED_ID = "X-Deleted-Id";
 }
