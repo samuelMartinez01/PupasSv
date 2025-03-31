@@ -109,7 +109,7 @@ public class TipoProductoResource implements Serializable {
      * @param id Identificador del TipoProducto a eliminar.
      * @return Una respuesta HTTP indicando el resultado de la operación.
      */
-    @POST
+    @DELETE
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     @Path("/{id}")

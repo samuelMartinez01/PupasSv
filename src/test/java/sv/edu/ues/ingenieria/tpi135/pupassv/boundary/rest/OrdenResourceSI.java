@@ -30,69 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class OrdenResourceIT {
+public class OrdenResourceSI  extends  AbstractContainerTest {
 
-    /**
-     * Cliente HTTP reutilizable para invocar el endpoint REST.
-     */
-    Client client;
-
-    /**
-     * Representa la URL base sobre la que se ejecutan las solicitudes HTTP.
-     */
-    WebTarget webTarget;
-
-    /**
-     * Red compartida entre los contenedores PostgreSQL y Open Liberty.
-     */
-    static Network red = Network.newNetwork();
-
-    /**
-     * Contenedor PostgreSQL configurado con Testcontainers.
-     * Se inicializa con un script SQL para crear las tablas necesarias.
-     */
-    @Container
-    static GenericContainer postgres = new PostgreSQLContainer("postgres:16-alpine")
-            .withDatabaseName("PupasBd_tpi2025")
-            .withPassword("abc123")
-            .withUsername("postgres")
-            .withInitScript("pupas_ddl.sql")
-            .withExposedPorts(5432)
-            .withNetwork(red)
-            .withNetworkAliases("db16");
-
-    /**
-     * Archivo WAR de la aplicación a desplegar en Open Liberty.
-     */
-    static MountableFile war = MountableFile.forHostPath(
-            Paths.get("target/PupasSv-1.0-SNAPSHOT.war").toAbsolutePath()
-    );
-
-    /**
-     * Contenedor Open Liberty configurado para desplegar el WAR de la aplicación
-     * y conectado a la base de datos PostgreSQL.
-     */
-    @Container
-    static GenericContainer openliberty = new GenericContainer("openliberty/open-liberty:latest")
-            .withExposedPorts(9080)
-            .withCopyFileToContainer(war, "/opt/ol/wlp/usr/servers/defaultServer/dropins/PupasSv-1.0-SNAPSHOT.war")
-            .withNetwork(red)
-            .withEnv("PGPASSWORD", "abc123")
-            .withEnv("PGUSER", "postgres")
-            .withEnv("PGDBNAME", "PupasBd_tpi2025")
-            .withEnv("PGPORT", "5432")
-            .withEnv("PGSERVER", "db16")
-            .dependsOn(postgres)
-            .waitingFor(Wait.forLogMessage(".*server is ready to run a smarter planet.*", 1));
-
-    /**
-     * Método de inicialización que configura el cliente HTTP y la URL base para las pruebas.
-     */
-    @BeforeAll
-    public void init() {
-        client = ClientBuilder.newClient();
-        webTarget = client.target(String.format("http://localhost:%d/PupasSv-1.0-SNAPSHOT/v1/", openliberty.getMappedPort(9080)));
-    }
 
     /**
      * Prueba que verifica el correcto funcionamiento del endpoint que retorna un rango de órdenes.

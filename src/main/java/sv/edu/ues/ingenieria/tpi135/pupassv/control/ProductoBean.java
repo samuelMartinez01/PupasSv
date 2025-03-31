@@ -5,6 +5,7 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Producto;
+import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ProductoDetalle;
 
 import java.io.Serializable;
 import java.util.List;
@@ -55,6 +56,25 @@ public class ProductoBean extends AbstractDataAccess<Producto> implements Serial
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
         }
         return 0;
+    }
+
+    public void crearProducto(Producto producto, Integer idTipoProducto) {
+        if (idTipoProducto == null || producto == null) {
+            throw new NullPointerException("El id o el producto no puede ser nulo");
+        } else {
+            try {
+                em.persist(producto);
+                em.flush();
+                em.refresh(producto);
+
+                ProductoDetalle productoDetalle = new ProductoDetalle(idTipoProducto, producto.getIdProducto());
+                productoDetalle.setActivo(true);
+                em.persist(productoDetalle);
+            } catch (Exception e) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
+                throw new IllegalStateException("Error al crear el producto");
+            }
+        }
     }
 
 }

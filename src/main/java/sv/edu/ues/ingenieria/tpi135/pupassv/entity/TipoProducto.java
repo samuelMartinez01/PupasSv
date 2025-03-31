@@ -54,7 +54,7 @@ public class TipoProducto implements Serializable {
     @Size(max = 2147483647)
     @Column(name = "observaciones")
     private String observaciones;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "tipoProducto")
+    @OneToMany(cascade = {CascadeType.REMOVE}, mappedBy = "tipoProducto")
     private List<ProductoDetalle> productoDetalleList;
 
     public TipoProducto() {

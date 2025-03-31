@@ -55,7 +55,7 @@
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
             <version>3.1.10</version>
-            <scope>test</scope> <!-- Solo para pruebas -->
+            <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.glassfish.jersey.media/jersey-media-json-jackson -->
         <dependency>
@@ -127,8 +127,6 @@
     <artifactId>jersey-hk2</artifactId>
     <version>3.1.10</version>
 </dependency>
-
-         
     </dependencies>
     
     <profiles>
@@ -149,6 +147,32 @@
                     <phase>integration-test</phase>
                 </execution>
             </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>systempg</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>3.5.2</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                <phase>integration-test</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <includes>
+                                <include>**/*SI.java</include>
+                            </includes>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

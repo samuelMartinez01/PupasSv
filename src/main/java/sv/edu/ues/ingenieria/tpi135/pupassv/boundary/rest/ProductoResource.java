@@ -23,6 +23,7 @@ public class ProductoResource implements Serializable {
 
    @Inject
     ProductoBean pBean;
+   @Inject
     ProductoDetalleBean pdBean;
     @Resource
     UserTransaction utx; //Manejador de transacciones
@@ -74,7 +75,7 @@ public class ProductoResource implements Serializable {
     ) {
         try {
             if (first >= 0 && max >= 0 && max <= 50) {
-                if (idTipoProducto.equals("any")) {
+                if (idTipoProducto.equals("all")) {
                     return findAll(first, max);
                 }
                 List<Producto> lista = pBean.findByIdTipoProducto(Integer.valueOf(idTipoProducto), first, max);
@@ -129,27 +130,35 @@ public class ProductoResource implements Serializable {
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response create(Producto producto, @PathParam("idTipoProducto") Integer idTipoProducto, @Context UriInfo uriInfo) {
+    public Response create(Producto producto,
+                           @PathParam("idTipoProducto") Integer idTipoProducto,
+                           @Context UriInfo uriInfo) {
         if (producto != null && producto.getIdProducto() == null) {
             try {
-                utx.begin();
-                pBean.create(producto);
-                pBean.getEntityManager().flush();
-                pBean.getEntityManager().refresh(producto);
+                if (idTipoProducto != null && idTipoProducto >= 0) {
+                    utx.begin();
+                    pBean.create(producto);
+                    pBean.getEntityManager().flush();
+                    pBean.getEntityManager().refresh(producto);
 
-                ProductoDetalle pDetalle = new ProductoDetalle(idTipoProducto, producto.getIdProducto());
-                pDetalle.setActivo(true);
-                pdBean.create(pDetalle);
-                utx.commit();
+                    ProductoDetalle pDetalle = new ProductoDetalle(idTipoProducto, producto.getIdProducto());
+                    pDetalle.setActivo(true);
+                    pdBean.create(pDetalle);
+                    utx.commit();
 
-                if (producto.getIdProducto() != null) {
-                    UriBuilder uri = uriInfo.getAbsolutePathBuilder();
-                    uri.path(String.valueOf(producto.getIdProducto()));
-                    return Response.created(uri.build())
-                            .header(Headers.LOCATION, uri.build().toString()).build();
+                    if (producto.getIdProducto() != null) {
+                        UriBuilder uri = uriInfo.getAbsolutePathBuilder();
+                        uri.path(String.valueOf(producto.getIdProducto()));
+                        return Response.created(uri.build()).build();  // ← Simplificado
+                    }
+                    return Response.status(422).header(Headers.UNPROCESSABLE_ENTITY, "producto").build();
+                } else {
+                    return Response.status(400)
+                            .header(Headers.WRONG_PARAMETER, "producto o idTipoProducto invalido" + idTipoProducto)
+                            .build();
                 }
-                return Response.status(422).header(Headers.UNPROCESSABLE_ENTITY, "producto").build();
-            }catch (Exception e) {
+
+            } catch (Exception e) {
                 Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
                 try {
                     utx.rollback();
@@ -159,7 +168,7 @@ public class ProductoResource implements Serializable {
                 return Response.status(500).entity(e.getMessage()).build();
             }
         }
-        return Response.status(400).header(Headers.WRONG_PARAMETER, producto).build();
+        return Response.status(400).header(Headers.WRONG_PARAMETER, "No existe el objeto").build();
     }
 
     /**
