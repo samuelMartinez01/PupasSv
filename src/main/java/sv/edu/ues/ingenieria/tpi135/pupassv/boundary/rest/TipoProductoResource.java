@@ -62,9 +62,9 @@ public class TipoProductoResource implements Serializable {
     public Response findById(@PathParam("id") Integer id) {
         if (id != null) {
             try {
-                TipoProducto lista = tpBean.findById(id);
-                if (lista != null) {
-                    return Response.ok(lista).build();
+                TipoProducto tipoProducto = tpBean.findById(id);
+                if (tipoProducto != null) {
+                    return Response.ok(tipoProducto).build();
                 }
                 return Response.status(404).header(Headers.NOT_FOUND_ID, id).build();
             } catch (Exception e) {

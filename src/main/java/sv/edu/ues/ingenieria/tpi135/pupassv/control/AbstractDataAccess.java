@@ -5,8 +5,11 @@
 package sv.edu.ues.ingenieria.tpi135.pupassv.control;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaDelete;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
@@ -66,17 +69,19 @@ public abstract class AbstractDataAccess<T> {
      * @throws IllegalArgumentException Si el ID es nulo.
      * @throws IllegalStateException Si no hay EntityManager disponible.
      */
-    public T findById(final Object id) throws IllegalArgumentException, IllegalStateException {
+    public T findById(final Object id) throws IllegalStateException {
         EntityManager em = null;
+
+        // Si el ID es nulo, retornar null directamente
         if (id == null) {
-            throw new IllegalArgumentException("ID no puede ser nulo");
+            return null;
         }
+
         try {
             em = getEntityManager();
             if (em == null) {
                 throw new IllegalStateException("EntityManager no disponible");
             }
-            System.out.println("Buscando ID: " + id + " de tipo: " + id.getClass().getSimpleName());
             return (T) em.find(tipoDato, id);
         } catch (Exception ex) {
             throw new IllegalStateException("Error al buscar el id en la entidad", ex);
@@ -140,20 +145,31 @@ public abstract class AbstractDataAccess<T> {
      * @throws IllegalArgumentException Si la entidad es nula.
      * @throws IllegalStateException Si no hay EntityManager disponible.
      */
-    public void delete(Object id) throws IllegalStateException, IllegalArgumentException {
-        if (id != null) {
-            EntityManager em = getEntityManager();
-            if (em != null) {
-                if (!em.contains(id )) {
-                   id = em.merge(id);
-                }
-                em.remove(id);
-                return;
-            } else {
-                throw new IllegalStateException("EntityManager no disponible");
-            }
+    public void delete(Object id) {
+        if (id == null || Long.parseLong(id.toString()) <= 0) {
+            throw new IllegalArgumentException("Id no valido ");
         }
-        throw new IllegalArgumentException("El registro es nulo");
+        EntityManager em = null;
+        em = getEntityManager();
+        if (em == null) {
+            throw new IllegalStateException("No se pudo acceder al repositorio");
+        }
+        try {
+            T registro = (T) em.find(tipoDato, id);
+            if (registro == null) {
+                throw new EntityNotFoundException("Id not found");
+            }
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaDelete<T> cd = cb.createCriteriaDelete(this.tipoDato);
+            Root<T> raiz = cd.from(this.tipoDato);
+            cd.where(cb.equal(raiz, registro));
+            em.createQuery(cd).executeUpdate();
+            return;
+        } catch (EntityNotFoundException e) {
+            throw e;
+        } catch (PersistenceException e) {
+            throw new PersistenceException(e);
+        }
     }
 
     /**

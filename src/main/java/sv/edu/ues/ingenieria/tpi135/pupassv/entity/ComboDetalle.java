@@ -4,6 +4,7 @@
  */
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -39,6 +40,7 @@ public class ComboDetalle implements Serializable {
     private Boolean activo;
     @JoinColumn(name = "id_combo", referencedColumnName = "id_combo", insertable = false, updatable = false)
     @ManyToOne(optional = false)
+    @JsonBackReference //Evita la recursividad
     private Combo combo;
     @JoinColumn(name = "id_producto", referencedColumnName = "id_producto", insertable = false, updatable = false)
     @ManyToOne(optional = false)

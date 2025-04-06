@@ -4,6 +4,7 @@
  */
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -38,7 +39,16 @@ import java.util.List;
     @NamedQuery(name = "ProductoPrecio.findByIdProductoPrecio", query = "SELECT p FROM ProductoPrecio p WHERE p.idProductoPrecio = :idProductoPrecio"),
     @NamedQuery(name = "ProductoPrecio.findByFechaDesde", query = "SELECT p FROM ProductoPrecio p WHERE p.fechaDesde = :fechaDesde"),
     @NamedQuery(name = "ProductoPrecio.findByFechaHasta", query = "SELECT p FROM ProductoPrecio p WHERE p.fechaHasta = :fechaHasta"),
-    @NamedQuery(name = "ProductoPrecio.findByPrecioSugerido", query = "SELECT p FROM ProductoPrecio p WHERE p.precioSugerido = :precioSugerido")})
+    @NamedQuery(name = "ProductoPrecio.findByPrecioSugerido", query = "SELECT p FROM ProductoPrecio p WHERE p.precioSugerido = :precioSugerido"),
+        @NamedQuery(name = "ProductoPrecio.findByIdPrecioProducto",
+                query = "SELECT p FROM ProductoPrecio p WHERE p.idProducto.idProducto = :idProducto ORDER BY p.fechaDesde DESC"),
+        @NamedQuery(name = "ProductoPrecio.findCurrentByProducto",
+                query = "SELECT p FROM ProductoPrecio p WHERE p.idProducto.idProducto = :idProducto "
+                        + "AND (p.fechaHasta IS NULL OR p.fechaHasta >= CURRENT_DATE) "
+                        + "ORDER BY p.fechaDesde DESC"),
+        @NamedQuery(name = "ProductoPrecio.findByIdProducto",
+                query = "SELECT p FROM ProductoPrecio p WHERE p.idProducto.idProducto = :idProducto "
+                        + "ORDER BY p.fechaDesde DESC")})
 public class ProductoPrecio implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -60,6 +70,7 @@ public class ProductoPrecio implements Serializable {
     private List<OrdenDetalle> ordenDetalleList;
     @JoinColumn(name = "id_producto", referencedColumnName = "id_producto")
     @ManyToOne
+    @JsonBackReference //Evita la recursividad
     private Producto idProducto;
 
     public ProductoPrecio() {

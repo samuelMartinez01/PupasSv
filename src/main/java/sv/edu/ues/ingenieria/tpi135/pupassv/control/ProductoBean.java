@@ -3,9 +3,10 @@ package sv.edu.ues.ingenieria.tpi135.pupassv.control;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceException;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Producto;
-import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ProductoDetalle;
 
 import java.io.Serializable;
 import java.util.List;
@@ -34,7 +35,22 @@ public class ProductoBean extends AbstractDataAccess<Producto> implements Serial
      * @param max
      * @return
      */
-    public List<Producto> findByIdTipoProducto (Integer id, Integer first, Integer max) {
+    public List<Producto> findByIdTipoProducto(Integer id, Integer first, Integer max) {
+        // Validar parámetros de entrada
+        if (id == null) {
+            Logger.getLogger(getClass().getName()).log(Level.WARNING,
+                    "ID de tipo producto es nulo. Retornando lista vacía");
+            return null;
+        }
+
+        if (first == null || first < 0) {
+            first = 0; // Valor por defecto si es nulo o negativo
+        }
+
+        if (max == null || max <= 0 || max > 50) {
+            max = 50; // Valor por defecto si es nulo, <=0 o >50
+        }
+
         try {
             return em.createNamedQuery("Producto.findByIdTipoProducto", Producto.class)
                     .setParameter("idTipoProducto", id)
@@ -42,9 +58,10 @@ public class ProductoBean extends AbstractDataAccess<Producto> implements Serial
                     .setMaxResults(max)
                     .getResultList();
         } catch (Exception e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE,
+                    "Error al buscar productos por tipo: " + e.getMessage(), e);
+            return null;
         }
-        return List.of();
     }
 
     public Integer countByIdTipoProducto (Integer id, Integer first, Integer max) {
@@ -58,23 +75,29 @@ public class ProductoBean extends AbstractDataAccess<Producto> implements Serial
         return 0;
     }
 
-    public void crearProducto(Producto producto, Integer idTipoProducto) {
-        if (idTipoProducto == null || producto == null) {
-            throw new NullPointerException("El id o el producto no puede ser nulo");
-        } else {
-            try {
-                em.persist(producto);
-                em.flush();
-                em.refresh(producto);
-
-                ProductoDetalle productoDetalle = new ProductoDetalle(idTipoProducto, producto.getIdProducto());
-                productoDetalle.setActivo(true);
-                em.persist(productoDetalle);
-            } catch (Exception e) {
-                Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
-                throw new IllegalStateException("Error al crear el producto");
+    public void deleteRelacion(Long idProducto, Integer idTipoProducto) {
+        if (idProducto == null || idProducto <= 0) {
+            throw new IllegalArgumentException("Id invalido");
+        }
+        if (idTipoProducto == null || idTipoProducto <= 0) {
+            throw new IllegalArgumentException("id tipo invalido");
+        }
+        try {
+            int detalleBorrado = em.createNamedQuery("ProductoDetalle.deleteRelacion")
+                    .setParameter("idProducto", idProducto)
+                    .setParameter("idTipoProducto", idTipoProducto)
+                    .executeUpdate();
+            if (detalleBorrado == 1) {
+                delete(idProducto);
+                return;
             }
+            throw new EntityNotFoundException("dNo se pudo eliminar la relacion");
+        } catch (EntityNotFoundException e) {
+            throw e;
+        } catch (PersistenceException e) {
+            throw new PersistenceException("Error al acceder a la base de datos", e);
         }
     }
+
 
 }

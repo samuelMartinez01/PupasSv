@@ -4,6 +4,7 @@
  */
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
@@ -29,7 +30,12 @@ import java.io.Serializable;
     @NamedQuery(name = "ProductoDetalle.findByIdTipoProducto", query = "SELECT p FROM ProductoDetalle p WHERE p.productoDetallePK.idTipoProducto = :idTipoProducto"),
     @NamedQuery(name = "ProductoDetalle.findByIdProducto", query = "SELECT p FROM ProductoDetalle p WHERE p.productoDetallePK.idProducto = :idProducto"),
     @NamedQuery(name = "ProductoDetalle.findByActivo", query = "SELECT p FROM ProductoDetalle p WHERE p.activo = :activo"),
-    @NamedQuery(name = "ProductoDetalle.findByObservaciones", query = "SELECT p FROM ProductoDetalle p WHERE p.observaciones = :observaciones")})
+    @NamedQuery(name = "ProductoDetalle.findByObservaciones", query = "SELECT p FROM ProductoDetalle p WHERE p.observaciones = :observaciones"),
+        @NamedQuery(name = "ProductoDetalle.deleteByIdProducto",query = "DELETE  FROM ProductoDetalle p WHERE p.productoDetallePK.idProducto=:idProducto"),
+        @NamedQuery(name = "ProductoDetalle.deleteRelacion",query =
+                "DELETE  FROM ProductoDetalle p " +
+                        "WHERE p.productoDetallePK.idTipoProducto = :idTipoProducto " +
+                        "and p.productoDetallePK.idProducto=:idProducto")})
 public class ProductoDetalle implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -42,6 +48,7 @@ public class ProductoDetalle implements Serializable {
     private String observaciones;
     @JoinColumn(name = "id_producto", referencedColumnName = "id_producto", insertable = false, updatable = false)
     @ManyToOne(optional = false)
+    @JsonBackReference //Evita la recursividad
     private Producto producto;
     @JoinColumn(name = "id_tipo_producto", referencedColumnName = "id_tipo_producto", insertable = false, updatable = false)
     @ManyToOne(optional = false)
@@ -97,6 +104,7 @@ public class ProductoDetalle implements Serializable {
     public void setTipoProducto(TipoProducto tipoProducto) {
         this.tipoProducto = tipoProducto;
     }
+
 
     @Override
     public int hashCode() {

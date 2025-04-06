@@ -4,6 +4,8 @@
  */
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -50,6 +52,7 @@ public class Combo implements Serializable {
     @Column(name = "descripcion_publica")
     private String descripcionPublica;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "combo")
+    @JsonManagedReference
     private List<ComboDetalle> comboDetalleList;
 
     public Combo() {
@@ -92,6 +95,7 @@ public class Combo implements Serializable {
     }
 
     @XmlTransient
+   // @JsonIgnore
     public List<ComboDetalle> getComboDetalleList() {
         return comboDetalleList;
     }

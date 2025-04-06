@@ -88,6 +88,15 @@ public class TipoProductoResourceSI  extends AbstractContainerTest {
         assertNotNull(tipoEncontrado);
         assertEquals(id, tipoEncontrado.getIdTipoProducto().longValue());
         assertEquals("tipicos", tipoEncontrado.getNombre());
+
+        // 7. Probar búsqueda para tipo que no existe
+        findResponse = webTarget.path("tipoproducto/999999")
+                .queryParam("first", 0)
+                .queryParam("max", 10)
+                .request(MediaType.APPLICATION_JSON)
+                .get();
+
+        assertEquals(404, findResponse.getStatus());
     }
 
     @Test

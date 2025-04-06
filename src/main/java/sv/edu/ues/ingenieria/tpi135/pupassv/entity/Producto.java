@@ -5,6 +5,7 @@
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
@@ -60,8 +61,10 @@ public class Producto implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "producto")
     private List<ComboDetalle> comboDetalleList;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "producto")
+    @JsonManagedReference
     private List<ProductoDetalle> productoDetalleList;
     @OneToMany(mappedBy = "idProducto")
+    @JsonManagedReference
     private List<ProductoPrecio> productoPrecioList;
 
     public Producto() {
@@ -114,7 +117,7 @@ public class Producto implements Serializable {
     }
 
     @XmlTransient
-    @JsonIgnore
+    //@JsonIgnore
     public List<ProductoDetalle> getProductoDetalleList() {
         return productoDetalleList;
     }
@@ -124,7 +127,7 @@ public class Producto implements Serializable {
     }
 
     @XmlTransient
-    @JsonIgnore
+    //@JsonIgnore
     public List<ProductoPrecio> getProductoPrecioList() {
         return productoPrecioList;
     }
