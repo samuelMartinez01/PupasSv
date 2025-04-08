@@ -28,7 +28,12 @@ import java.io.Serializable;
     @NamedQuery(name = "ComboDetalle.findByIdCombo", query = "SELECT c FROM ComboDetalle c WHERE c.comboDetallePK.idCombo = :idCombo"),
     @NamedQuery(name = "ComboDetalle.findByIdProducto", query = "SELECT c FROM ComboDetalle c WHERE c.comboDetallePK.idProducto = :idProducto"),
     @NamedQuery(name = "ComboDetalle.findByCantidad", query = "SELECT c FROM ComboDetalle c WHERE c.cantidad = :cantidad"),
-    @NamedQuery(name = "ComboDetalle.findByActivo", query = "SELECT c FROM ComboDetalle c WHERE c.activo = :activo")})
+    @NamedQuery(name = "ComboDetalle.findByActivo", query = "SELECT c FROM ComboDetalle c WHERE c.activo = :activo"),
+        @NamedQuery(name = "ComboDetalle.deleteRelacionCombo",
+                query = "DELETE FROM ComboDetalle cd WHERE cd.comboDetallePK.idCombo = :idCombo"),
+        @NamedQuery(name = "ComboDetalle.deleteProductoCombo",
+                query = "DELETE FROM ComboDetalle cd WHERE cd.comboDetallePK.idCombo = :idCombo " +
+                        "AND cd.comboDetallePK.idProducto = :idProducto")})
 public class ComboDetalle implements Serializable {
 
     private static final long serialVersionUID = 1L;

@@ -20,6 +20,7 @@ public class ProductoDTO {
     private BigDecimal precioActual;
     private String observaciones;
     private Boolean activo;
+    private BigDecimal precioTotal;
 
     public ProductoDTO() {
     }

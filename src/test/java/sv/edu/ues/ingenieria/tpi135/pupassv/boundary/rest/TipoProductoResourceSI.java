@@ -67,10 +67,6 @@ public class TipoProductoResourceSI  extends AbstractContainerTest {
         assertNotNull(response.getLocation());
         // Obtinene la hubicacion del nuevo aobjeto creado
         String location = response.getLocation().toString();
-//        assertEquals(String.format("http://localhost:%d/PupasSv-1.0-SNAPSHOT/v1/tipoproducto/4",
-//                openliberty.getMappedPort(9080)),
-//                location);
-        // Obtinene el id del nuevo aobjeto creado
         Integer id = Integer.parseInt(location.substring(location.lastIndexOf('/') + 1));
         assertEquals(4, id);
     }

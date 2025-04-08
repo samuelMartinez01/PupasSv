@@ -5,6 +5,7 @@
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
@@ -28,13 +29,21 @@ import java.util.List;
  */
 @Entity
 @Table(name = "combo")
+@JsonIgnoreProperties(ignoreUnknown = true) //Para los DTO ignoren la lista de productos
 @XmlRootElement
-@NamedQueries({
-    @NamedQuery(name = "Combo.findAll", query = "SELECT c FROM Combo c"),
-    @NamedQuery(name = "Combo.findByIdCombo", query = "SELECT c FROM Combo c WHERE c.idCombo = :idCombo"),
-    @NamedQuery(name = "Combo.findByNombre", query = "SELECT c FROM Combo c WHERE c.nombre = :nombre"),
-    @NamedQuery(name = "Combo.findByActivo", query = "SELECT c FROM Combo c WHERE c.activo = :activo"),
-    @NamedQuery(name = "Combo.findByDescripcionPublica", query = "SELECT c FROM Combo c WHERE c.descripcionPublica = :descripcionPublica")})
+@NamedQueries(value = {
+        @NamedQuery(name = "Combo.findAll", query = "SELECT c FROM Combo c"),
+        @NamedQuery(name = "Combo.findByIdCombo", query = "SELECT c FROM Combo c WHERE c.idCombo = :idCombo"),
+        @NamedQuery(name = "Combo.findByNombre", query = "SELECT c FROM Combo c WHERE c.nombre = :nombre"),
+        @NamedQuery(name = "Combo.findByActivo", query = "SELECT c FROM Combo c WHERE c.activo = :activo"),
+        @NamedQuery(name = "Combo.findByDescripcionPublica", query = "SELECT c FROM Combo c WHERE c.descripcionPublica = :descripcionPublica"),
+        @NamedQuery(name = "Combo.findProductosByComboId",
+                query = "SELECT p, cd.cantidad, pp.precioSugerido " +
+                        "FROM Combo c " +
+                        "JOIN c.comboDetalleList cd " +
+                        "JOIN cd.producto p " +
+                        "LEFT JOIN p.productoPrecioList pp ON pp.fechaHasta IS NULL " +
+                        "WHERE c.idCombo = :idCombo AND cd.activo = true")})
 public class Combo implements Serializable {
 
     private static final long serialVersionUID = 1L;

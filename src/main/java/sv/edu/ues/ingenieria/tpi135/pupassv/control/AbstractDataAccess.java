@@ -57,6 +57,7 @@ public abstract class AbstractDataAccess<T> {
                 throw new IllegalStateException("EntityManager no disponible");
             }
             em.persist(entity);
+            em.flush();
         } catch (Exception ex) {
             throw new IllegalStateException("Error al crear la entidad", ex);
         }

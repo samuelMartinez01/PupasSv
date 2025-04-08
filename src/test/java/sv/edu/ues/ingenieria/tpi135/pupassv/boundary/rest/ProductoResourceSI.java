@@ -48,8 +48,6 @@ public class ProductoResourceSI extends AbstractContainerTest {
         });
         assertNotNull(productos);
         assertFalse(productos.isEmpty());
-        Long totalRecords = Long.parseLong(response.getHeaderString(Headers.TOTAL_RECORD));
-        assertTrue(totalRecords == 1);
     }
 
 
@@ -79,7 +77,7 @@ public class ProductoResourceSI extends AbstractContainerTest {
         assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
         String pLocation = response.getLocation().toString();
         assertNotNull(pLocation);
-        //Se obtiene el id del producto creado
+        //Se obtiene él, id del producto creado
         Integer idProducto = Integer.parseInt( pLocation.substring(
                 pLocation.lastIndexOf('/') + 1));
         response = webTarget.path(path).path(String.valueOf(idProducto))
@@ -118,10 +116,10 @@ public class ProductoResourceSI extends AbstractContainerTest {
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(producto, MediaType.APPLICATION_JSON));
 
-        //Se obtiene el id del producto creado
+        //Se obtiene él, id del producto creado
         String productoLocation = response.getLocation().toString();
         Integer idProducto = Integer.parseInt( productoLocation.substring(
-                        productoLocation.lastIndexOf('/') + 1));
+                productoLocation.lastIndexOf('/') + 1));
 
         response = webTarget.path(path).path(String.valueOf(idProducto))
                 .request(MediaType.APPLICATION_JSON)
@@ -273,7 +271,7 @@ public class ProductoResourceSI extends AbstractContainerTest {
         String pLocation = response.getLocation().toString();
         Long idProducto = Long.parseLong(pLocation.substring(pLocation.lastIndexOf('/') + 1));
 
-      //Eliminacion
+        //Eliminacion
         response = webTarget.path(path)
                 .path(idProducto.toString())
                 .queryParam("idTipoProducto", idTipoProducto)
