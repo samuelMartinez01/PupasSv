@@ -14,7 +14,7 @@ pipeline {
         stage('Clonar Repositorio') {
             steps {
                 // Clona el repositorio. Ajusta la URL y rama según corresponda.
-                git branch: 'main', url: 'https://github.com/tu-usuario/tu-repositorio.git'
+                git branch: 'master', url: 'https://github.com/samuelMartinez01/PupasSv.git'
             }
         }
         
