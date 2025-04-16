@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+
+    environment {
+        // Variables de entorno para la configuración
+        BASE_HOST = "localhost"
+        BASE_PORT = "5050"
+        // Directorio donde OpenLiberty despliega las aplicaciones.
+        // Asegúrate de actualizar este path según tu instalación de OpenLiberty.
+        DEPLOY_DIR = "/opt/openliberty/dropins"
+    }
+
+    stages {
+        stage('Clonar Repositorio') {
+            steps {
+                // Clona el repositorio. Ajusta la URL y rama según corresponda.
+                git branch: 'main', url: 'https://github.com/tu-usuario/tu-repositorio.git'
+            }
+        }
+        
+        stage('Verificar Base de Datos') {
+            steps {
+                // Verifica que el puerto de la base de datos esté activo en localhost.
+                // Utiliza netcat (nc) para validar la conexión.
+                sh '''
+                    if ! nc -zv $BASE_HOST $BASE_PORT; then
+                        echo "La base de datos no está corriendo en $BASE_HOST:$BASE_PORT"
+                        exit 1
+                    fi
+                '''
+            }
+        }
+        
+        stage('Construir con Maven') {
+            steps {
+                // Limpia y construye el paquete con Maven, generando el .war
+                sh 'mvn clean package'
+            }
+        }
+        
+        stage('Desplegar en OpenLiberty') {
+            steps {
+                // Copia el archivo .war generado al directorio de despliegue de OpenLiberty.
+                // Se asume que el .war se genera en la carpeta target y que su nombre es el de la app (puede ser *.war)
+                sh "cp target/*.war $DEPLOY_DIR"
+                
+                // Opcional: Puedes agregar aquí un reinicio o validación del despliegue en OpenLiberty.
+                // Ejemplo: sh 'systemctl restart openliberty'
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo 'El pipeline se ejecutó exitosamente.'
+        }
+        failure {
+            echo 'El pipeline falló. Revisa los logs para más detalles.'
+        }
+    }
+}
