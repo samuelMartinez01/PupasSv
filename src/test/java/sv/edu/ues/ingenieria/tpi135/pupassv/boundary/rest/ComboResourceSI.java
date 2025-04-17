@@ -11,9 +11,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import sv.edu.ues.ingenieria.tpi135.pupassv.DTO.ComboDTO;
 import sv.edu.ues.ingenieria.tpi135.pupassv.DTO.ProductoComboDTO;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Combo;
-
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -24,7 +22,7 @@ public class ComboResourceSI  extends AbstractContainerTest {
     @Test
     @Order(1)
     public void testCreate() {
-        System.out.println("Combo.Create");
+        System.out.println("ComboResource.Create");
         Combo combo = new Combo();
         combo.setIdCombo(5L);
         combo.setNombre("New combo");
@@ -44,7 +42,7 @@ public class ComboResourceSI  extends AbstractContainerTest {
     @Test
     @Order(2)
     public void testFindRange() {
-        System.out.println("Combo.findRange");
+        System.out.println("ComboResource.findRange");
         Response response = webTarget.path("combo")
                 .queryParam("first", 0)
                 .queryParam("max", 10)
@@ -63,7 +61,7 @@ public class ComboResourceSI  extends AbstractContainerTest {
     @Test
     @Order(3)
     public void testFindById() {
-        System.out.println("Combo.FindById");
+        System.out.println("ComboResource.FindById");
         Long id = 2L;
         Response response = webTarget.path("combo").path(id.toString())
                 .request(MediaType.APPLICATION_JSON)
@@ -86,7 +84,7 @@ public class ComboResourceSI  extends AbstractContainerTest {
     @Test
     @Order(4)
     public void testUpdate() {
-        System.out.println("Combo.Update");
+        System.out.println("ComboResource.Update");
         Long id = 2L;
         Response response = webTarget.path("combo")
                 .path(id.toString())
@@ -113,7 +111,7 @@ public class ComboResourceSI  extends AbstractContainerTest {
     @Test
     @Order(5)
     public void testDelete() {
-        System.out.println("Combo.Delete");
+        System.out.println("ComboResource.Delete");
         Integer idCombo = 1;
         Response response = webTarget.path("combo")
                 .path(idCombo.toString())
@@ -127,13 +125,10 @@ public class ComboResourceSI  extends AbstractContainerTest {
         assertEquals(404, response.getStatus());
     }
 
-    /**
-     * Inserta el producto 5 que se crea con el script, en el combo familiar.
-     */
     @Test
     @Order(6)
     public void asignarProductosACombo() {
-        System.out.println("Combo.AsignarProductosACombo");
+        System.out.println("ComboResource.AsignarProductosACombo");
         Integer idComboAsignar = 2; //Familiar
         ProductoComboDTO productoDTO = new ProductoComboDTO();
         productoDTO.setIdProducto(5L); // producto a asignar
@@ -162,7 +157,7 @@ public class ComboResourceSI  extends AbstractContainerTest {
     @Test
     @Order(7)
     public void eliminarProductosDeCombo() {
-        System.out.println("Combo.eliminarProductosDeCombo");
+        System.out.println("ComboResource.eliminarProductosDeCombo");
         Long idCombo = 2L; //infantil
         Long idProducto = 5L; //cerveza
         Response response = webTarget.path("combo")
@@ -171,10 +166,8 @@ public class ComboResourceSI  extends AbstractContainerTest {
                 .queryParam("idProducto", idProducto)
                 .request(MediaType.APPLICATION_JSON)
                 .delete();
-        System.out.println(response.readEntity(String.class));
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 
-        //Peticion y comprobacion
         response = webTarget.path("combo")
                 .path(idCombo.toString())
                 .path("productos")

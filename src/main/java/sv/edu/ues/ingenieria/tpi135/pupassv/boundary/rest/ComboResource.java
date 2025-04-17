@@ -92,32 +92,6 @@ public class ComboResource implements Serializable {
     }
 
     /**
-     * Metodo para obtener los productos de un combo
-     * @param idCombo
-     * @return ProductoComboDTO
-     */
-    @GET
-    @Path("/{idCombo}/productos")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getProductosDelCombo(@PathParam("idCombo") Long idCombo) {
-        try {
-            Combo combo = cBean.findById(idCombo);
-            if (combo == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity("Combo no encontrado con ID: " + idCombo)
-                        .build();
-            }
-            List<ProductoComboDTO> productos = cBean.findProductosByComboId(idCombo);
-            return Response.ok(productos).build();
-        } catch (Exception e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al obtener productos del combo", e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Error al obtener productos: " + e.getMessage())
-                    .build();
-        }
-    }
-
-    /**
      * Metodo para obtener todos los combos
      * @param combo
      * @param uriInfo
@@ -166,87 +140,6 @@ public class ComboResource implements Serializable {
         }
     }
 
-    /**
-     * Metodo para asignar productos a un combo
-     * @param idCombo
-     * @param productosDTO
-     * @return
-     */
-    @POST
-    @Path("/{idCombo}/productos")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response asignarProductosACombo(
-            @PathParam("idCombo") Long idCombo,
-            List<ProductoComboDTO> productosDTO) {
-       if (idCombo != null && productosDTO != null) {
-           try {
-               utx.begin();
-               Combo combo = cBean.findById(idCombo);
-               if (combo != null) {
-                   for (ProductoComboDTO dto : productosDTO) {
-                       if (dto.getIdProducto() != null && dto.getCantidad() != null && dto.getCantidad() > 0) {
-                           Producto producto = pBean.findById(dto.getIdProducto());
-                           if (producto != null) {
-                               //Se crea una clave compuesta (pk)
-                               ComboDetallePK pk = new ComboDetallePK(idCombo, dto.getIdProducto());
-                               ComboDetalle detalle = cdBean.findByPk(pk);
-                               if (detalle == null) {
-                                   //Se crea un detalle (una relacion)
-                                   detalle = new ComboDetalle(pk);
-                                   detalle.setCombo(combo);
-                                   detalle.setProducto(producto);
-                                   detalle.setCantidad(dto.getCantidad());
-                                   detalle.setActivo(true);
-                                   cdBean.create(detalle);
-                               } else {
-                                   detalle.setCantidad(dto.getCantidad());
-                                   detalle.setActivo(true);
-                                   cdBean.update(detalle);
-                               }
-                           } else {
-                               utx.rollback();
-                               return Response.status(Response.Status.NOT_FOUND)
-                                       .entity("Producto no encontrado con ID: " + dto.getIdProducto())
-                                       .build();
-                           }
-                       } else {
-                           utx.rollback();
-                           return Response.status(Response.Status.BAD_REQUEST)
-                                   .entity("Datos inválidos para producto: ID o cantidad incorrectos")
-                                   .build();
-                       }
-                   }
-                   utx.commit();
-                   return Response.ok()
-                           .entity("Productos asignados al combo exitosamente")
-                           .build();
-
-               }else {
-                   return Response.status(Response.Status.NOT_FOUND)
-                           .entity("Combo no encontrado con ID: " + idCombo)
-                           .build();
-               }
-           } catch (Exception e) {
-               try {
-                   if (utx.getStatus() != Status.STATUS_NO_TRANSACTION) {
-                       utx.rollback();
-                   }
-               } catch (Exception ex) {
-                   Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error en rollback", ex);
-               }
-
-               Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al asignar productos", e);
-               return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                       .entity("Error interno: " + e.getMessage())
-                       .build();
-           }
-       } else {
-           return Response.status(Response.Status.BAD_REQUEST)
-                   .entity("Se requieren ID de combo y lista de productos")
-                   .build();
-       }
-    }
 
     @PUT
     @Path("/{idCombo}")
@@ -342,6 +235,102 @@ public class ComboResource implements Serializable {
     }
 
     /**
+     * Metodo para obtener los productos de un combo
+     * @param idCombo
+     * @return ProductoComboDTO
+     */
+    @GET
+    @Path("/{idCombo}/productos")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getProductosDelCombo(@PathParam("idCombo") Long idCombo) {
+        try {
+            Combo combo = cBean.findById(idCombo);
+            if (combo != null) {
+                List<ProductoComboDTO> productos = cBean.findProductosByComboId(idCombo);
+                return Response.ok(productos).build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Combo no encontrado con ID: " + idCombo)
+                        .build();
+            }
+        } catch (Exception e) {
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al obtener productos del combo", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error al obtener productos: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Metodo para asignar productos a un combo
+     * @param idCombo
+     * @param productosDTO
+     * @return
+     */
+    @POST
+    @Path("/{idCombo}/productos")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response asignarProductosACombo(
+            @PathParam("idCombo") Long idCombo,
+            List<ProductoComboDTO> productosDTO) {
+        if (idCombo != null && productosDTO != null) {
+            try {
+                utx.begin();
+                Combo combo = cBean.findById(idCombo);
+                if (combo != null) {
+                    for (ProductoComboDTO dto : productosDTO) {
+                        if (dto.getIdProducto() != null && dto.getCantidad() != null && dto.getCantidad() > 0) {
+                            Producto producto = pBean.findById(dto.getIdProducto());
+                            if (producto != null) {
+                                //Se crea una clave compuesta (pk)
+                                ComboDetallePK pk = new ComboDetallePK(idCombo, dto.getIdProducto());
+                                ComboDetalle detalle = cdBean.findByPk(pk);
+                                if (detalle == null) {
+                                    //Se crea un detalle (una relacion)
+                                    detalle = new ComboDetalle(pk);
+                                    detalle.setCombo(combo);
+                                    detalle.setProducto(producto);
+                                    detalle.setCantidad(dto.getCantidad());
+                                    detalle.setActivo(true);
+                                    cdBean.create(detalle);
+                                } else {
+                                    detalle.setCantidad(dto.getCantidad());
+                                    detalle.setActivo(true);
+                                    cdBean.update(detalle);
+                                }
+                            } else {
+                                utx.rollback();
+                                return Response.status(Response.Status.NOT_FOUND).build();
+                            }
+                        } else {
+                            utx.rollback();
+                            return Response.status(Response.Status.BAD_REQUEST).build();
+                        }
+                    }
+                    utx.commit();
+                    return Response.ok().build();
+                }else {
+                    return Response.status(Response.Status.NOT_FOUND).build();
+                }
+            } catch (Exception e) {
+                try {
+                    if (utx.getStatus() != Status.STATUS_NO_TRANSACTION) {
+                        utx.rollback();
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error en rollback", ex);
+                }
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al asignar productos", e);
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
+
+
+    /**
      * MEtodo para eliminar un producto de un combo
      * @param idCombo
      * @param idProducto
@@ -360,9 +349,7 @@ public class ComboResource implements Serializable {
                 if (combo != null) {
                         cdBean.deleteProductoCombo(idCombo, idProducto);
                     utx.commit();
-                    return Response.ok()
-                            .build();
-
+                    return Response.ok().build();
                 } else {
                     return Response.status(Response.Status.NOT_FOUND)
                             .build();
@@ -375,16 +362,11 @@ public class ComboResource implements Serializable {
                 } catch (Exception ex) {
                     Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error", ex);
                 }
-
                 Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al eliminar productos del combo", e);
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .entity( e.getMessage())
-                        .build();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
         }else {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Se requieren ID de combo y lista de IDs de productos")
-                    .build();
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
 }

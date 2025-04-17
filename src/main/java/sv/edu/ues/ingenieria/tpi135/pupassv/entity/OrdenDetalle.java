@@ -4,6 +4,8 @@
  */
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
@@ -32,7 +34,16 @@ import java.math.BigDecimal;
     @NamedQuery(name = "OrdenDetalle.findByIdProductoPrecio", query = "SELECT o FROM OrdenDetalle o WHERE o.ordenDetallePK.idProductoPrecio = :idProductoPrecio"),
     @NamedQuery(name = "OrdenDetalle.findByCantidad", query = "SELECT o FROM OrdenDetalle o WHERE o.cantidad = :cantidad"),
     @NamedQuery(name = "OrdenDetalle.findByPrecio", query = "SELECT o FROM OrdenDetalle o WHERE o.precio = :precio"),
-    @NamedQuery(name = "OrdenDetalle.findByObservaciones", query = "SELECT o FROM OrdenDetalle o WHERE o.observaciones = :observaciones")})
+    @NamedQuery(name = "OrdenDetalle.findByObservaciones", query = "SELECT o FROM OrdenDetalle o WHERE o.observaciones = :observaciones"),
+        @NamedQuery(name = "OrdenDetalle.findProductosByIdOrden",
+                query = "SELECT od FROM OrdenDetalle od " +
+                        "JOIN FETCH od.productoPrecio pp " +
+                        "JOIN FETCH pp.idProducto p " +
+                        "WHERE od.ordenDetallePK.idOrden = :idOrden"),
+        @NamedQuery(name = "OrdenDetalle.deleteByOrdenId",
+                query = "DELETE FROM OrdenDetalle od WHERE od.ordenDetallePK.idOrden = :idOrden"),
+@NamedQuery(name = "OrdenDetalle.deleteProductoDeOrden",
+query = "DELETE FROM OrdenDetalle od WHERE od.ordenDetallePK.idOrden = :idOrden AND od.ordenDetallePK.idProductoPrecio = :idProductoPrecio")})
 public class OrdenDetalle implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -48,6 +59,7 @@ public class OrdenDetalle implements Serializable {
     @Size(max = 2147483647)
     @Column(name = "observaciones")
     private String observaciones;
+    @JsonIgnore
     @JoinColumn(name = "id_orden", referencedColumnName = "id_orden", insertable = false, updatable = false)
     @ManyToOne(optional = false)
     private Orden orden;

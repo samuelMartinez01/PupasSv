@@ -20,37 +20,18 @@ public class ProductoDTO {
     private BigDecimal precioActual;
     private String observaciones;
     private Boolean activo;
-    private BigDecimal precioTotal;
 
     public ProductoDTO() {
     }
-
     /**
      * Constructor que convierte una entidad {@link Producto} en un {@code ProductoListDTO}.
-     *
      * @param producto La entidad {@link Producto} de la cual se extraerán los datos.
      */
-
-
     public ProductoDTO(Producto producto) {
         this.idProducto = producto.getIdProducto();
         this.nombre = producto.getNombre();
         this.observaciones = producto.getObservaciones();
         this.activo = producto.getActivo();
-
-        // Obtiene el precio actual, filtrando por los precios sin fecha de finalización
-        this.precioActual = producto.getProductoPrecioList().stream()
-                .filter(pp -> pp.getFechaHasta() == null)
-                .findFirst()
-                .map(ProductoPrecio::getPrecioSugerido)
-                .orElse(null);
-
-        // Obtiene el tipo de producto, filtrando los detalles activos
-        this.tipo = producto.getProductoDetalleList().stream()
-                .filter(ProductoDetalle::getActivo)
-                .findFirst()
-                .map(pd -> pd.getTipoProducto().getNombre())
-                .orElse("Sin tipo");
     }
 
     public Long getIdProducto() {

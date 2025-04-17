@@ -4,6 +4,8 @@
  */
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -54,8 +56,10 @@ public class Orden implements Serializable {
     @Column(name = "anulada")
     private Boolean anulada;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "orden")
+    @JsonIgnore
     private List<OrdenDetalle> ordenDetalleList;
     @OneToMany(mappedBy = "idOrden")
+    @JsonIgnore
     private List<Pago> pagoList;
 
     public Orden() {

@@ -3,12 +3,17 @@ package sv.edu.ues.ingenieria.tpi135.pupassv.control;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ComboDetalle;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ComboDetallePK;
+import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ProductoDetalle;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Stateless
 @LocalBean
@@ -20,12 +25,10 @@ public class ComboDetalleBean extends AbstractDataAccess<ComboDetalle> implement
         super(ComboDetalle.class);
 
     }
-
     @Override
     public EntityManager getEntityManager() {
         return em;
     }
-
     /**
      * Metodo para verificar si ya existe una relación entre un combo y un producto
      * antes de crearla o actualizarla.
@@ -57,5 +60,16 @@ public class ComboDetalleBean extends AbstractDataAccess<ComboDetalle> implement
                 .setParameter("idCombo", idCombo)
                 .setParameter("idProducto", idProducto)
                 .executeUpdate();
+    }
+
+    public List<ComboDetalle> findByProducto(Long idProducto) {
+        try {
+            return em.createNamedQuery("ComboDetalle.findByProducto", ComboDetalle.class)
+                    .setParameter("idProducto", idProducto)
+                    .getResultList();
+        } catch (Exception e) {
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al buscar relaciones combo", e);
+            return Collections.emptyList();
+        }
     }
 }

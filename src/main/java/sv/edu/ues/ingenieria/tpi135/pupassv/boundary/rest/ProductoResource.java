@@ -12,6 +12,7 @@ import sv.edu.ues.ingenieria.tpi135.pupassv.control.*;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.*;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,7 +22,8 @@ import java.util.stream.Collectors;
  * Recurso REST que maneja las gestion de productos dentro de un tipo de producto especifico
  */
 
-@Path("tipoproducto/{idTipoProducto}/producto")
+
+@Path("producto")
 public class ProductoResource implements Serializable {
 
     @Inject
@@ -46,14 +48,31 @@ public class ProductoResource implements Serializable {
      * @param max
      * @return lista de productos
      */
+    @GET
+    @Path("")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findAll(int first, int max) {
+    public Response findRange(
+            @QueryParam("first") @DefaultValue("0") int first,
+            @QueryParam("max") @DefaultValue("50") int max
+    ) {
         try {
             if (first >= 0 && max > 0 && max<= 50) {
                 List<Producto> productos = pBean.findRange(first, max);
                 List<ProductoDTO> listaProductos = productos.stream()
-                        .map( p -> {
-                            ProductoDTO dto = new ProductoDTO(p);
+                        .map( producto -> {
+                            ProductoDTO dto = new ProductoDTO(producto);
+                            ProductoPrecio pPrecio = ppBean.findProductoPrecioByProducto(producto.getIdProducto());
+                            if (pPrecio != null) {
+                                dto.setPrecioActual(pPrecio.getPrecioSugerido());
+                            } else {
+                                dto.setPrecioActual(new BigDecimal(0));
+                            }
+                            TipoProducto tipo = pdBean.findTipoProducto(producto.getIdProducto());
+                            if (tipo != null) {
+                                dto.setTipo(tipo.getNombre());
+                            } else {
+                                dto.setTipo("Sin tipo");
+                            }
                             return dto;
                         }).collect(Collectors.toList());
                 long total = pBean.count();
@@ -79,51 +98,57 @@ public class ProductoResource implements Serializable {
      * @param idTipo String y luego se convierte a Integer
      * @return lista de productos pertenecientes a un solo tipo
      */
+
     @GET
-    @Path("")
+    @Path("/tipoproducto/{idTipoProducto}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response findPorTipo(
             @PathParam("idTipoProducto") String idTipo,
             @QueryParam("first") @DefaultValue("0") int first,
             @QueryParam("max") @DefaultValue("50") int max) {
 
-
         try {
-
             if (first >= 0 && max >= 0 && max <= 50) {
-                if (idTipo.equals("all")) {
-                    return findAll(first, max);
-                }
-               Integer idTipoProducto = Integer.valueOf(idTipo);
-                TipoProducto tipoProducto = tpBean.findById(idTipoProducto);
-                if (tipoProducto == null) {
-                    return Response.status(Response.Status.NOT_FOUND)
-                           // .entity("Tipo producto no encontrado")
-                            .build();
-                }
+                    Integer idTipoProducto = Integer.valueOf(idTipo);
+                    TipoProducto tipoProducto = tpBean.findById(idTipoProducto);
 
+                    if (tipoProducto == null) {
+                        return Response.status(Response.Status.NOT_FOUND).build();
+                    } else {
+                        List<Producto> productos = pBean.findByIdTipoProducto(idTipoProducto, first, max);
 
-                List<Producto> productos = pBean.findByIdTipoProducto(idTipoProducto, first, max);
-                if (productos.isEmpty()) {
-                    return Response.status(Response.Status.NOT_FOUND)
-                           // .entity("No se encontraron productosdddd")
-                            .build();
-                }
-                List<ProductoDTO> response = productos.stream()
-                        .map(p -> {
-                            ProductoDTO dto = new ProductoDTO(p);
-                            return dto;
-                        })
-                        .collect(Collectors.toList());
-                long total = pBean.count();
-                return Response.ok(response)
-                        .header(Headers.TOTAL_RECORD, total).build();
+                        if (productos.isEmpty()) {
+                            return Response.status(Response.Status.NOT_FOUND).build();
+                        } else {
+                            List<ProductoDTO> response = productos.stream()
+                                    .map(producto -> {
+                                        ProductoDTO dto = new ProductoDTO(producto);
+                                        ProductoPrecio pPrecio = ppBean.findProductoPrecioByProducto(producto.getIdProducto());
+                                        if (pPrecio != null) {
+                                            dto.setPrecioActual(pPrecio.getPrecioSugerido());
+                                        } else {
+                                            dto.setPrecioActual(new BigDecimal(0));
+                                        }
+                                        dto.setTipo(tipoProducto.getNombre());
+                                        return dto;
+                                    })
+                                    .collect(Collectors.toList());
+                            long total = pBean.count();
+                            return Response.ok(response)
+                                    .header(Headers.TOTAL_RECORD, total)
+                                    .build();
+                        }
+                    }
             } else {
-                return Response.status(400).header(Headers.WRONG_PARAMETER, "first" + first + "max" + max).build();
+                return Response.status(400)
+                        .header(Headers.WRONG_PARAMETER, "first" + first + "max" + max)
+                        .build();
             }
         } catch (Exception e) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
-            return Response.status(500).entity(e.getMessage()).build();
+            return Response.status(500)
+                    .entity(e.getMessage())
+                    .build();
         }
     }
 
@@ -141,6 +166,18 @@ public class ProductoResource implements Serializable {
                 Producto producto = pBean.findById(idProducto);
                 if (producto != null) {
                     ProductoDTO dto = new ProductoDTO(producto);
+                    ProductoPrecio pPrecio = ppBean.findProductoPrecioByProducto(producto.getIdProducto());
+                    if (pPrecio != null) {
+                        dto.setPrecioActual(pPrecio.getPrecioSugerido());
+                    } else {
+                        dto.setPrecioActual(new BigDecimal(0));
+                    }
+                    TipoProducto tipo = pdBean.findTipoProducto(producto.getIdProducto());
+                    if (tipo != null) {
+                        dto.setTipo(tipo.getNombre());
+                    } else {
+                        dto.setTipo("Sin tipo");
+                    }
                     return Response.ok(dto).build();
                 }
                 return Response.status(404).header(Headers.NOT_FOUND_ID, String.valueOf(idProducto)).build();
@@ -155,38 +192,31 @@ public class ProductoResource implements Serializable {
     /**
      * Crea un nuevo producto y lo asocia a un tipo de producto
      * @param producto Objeto a ser creado
-     * @param idTipoProducto identiicador del tipo de producto asociado
      * @param uriInfo info de la solicitud http
      * @return respuesta con el estado de la operacion y la hubicacion del nuevo registro
      */
-    @Path("")
+
     @POST
+    @Path("")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response create(
-            Producto producto,
-            @PathParam("idTipoProducto") Integer idTipoProducto,
-            @Context UriInfo uriInfo) {
-        if (producto == null || producto.getIdProducto() != null || idTipoProducto == null) {
+    public Response create(Producto producto, @Context UriInfo uriInfo) {
+        if (producto == null || producto.getNombre() == null || producto.getNombre().trim().isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Datos de producto inválidos")
+                    .entity("Datos de producto inválidos: nombre es requerido")
                     .build();
         }
         try {
             utx.begin();
             producto.setActivo(true); // Valor por defecto
             pBean.create(producto);
-            pBean.getEntityManager().flush();
-            // crea una relación con tipo de producto
-            ProductoDetalle pDetalle = new ProductoDetalle(idTipoProducto, producto.getIdProducto());
-            pDetalle.setActivo(true);
-            pdBean.create(pDetalle);
             utx.commit();
+
             UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder()
                     .path(producto.getIdProducto().toString());
             return Response.created(uriBuilder.build()).build();
-
         } catch (Exception e) {
+            e.printStackTrace();
             try {
                 if (utx.getStatus() == Status.STATUS_ACTIVE) {
                     utx.rollback();
@@ -194,8 +224,9 @@ public class ProductoResource implements Serializable {
             } catch (Exception ex) {
                 Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error en rollback", ex);
             }
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al crear producto", e);
-            return Response.serverError().entity("Error al crear producto").build();
+            return Response.serverError()
+                    .entity(e)
+                    .build();
         }
     }
 
@@ -205,8 +236,6 @@ public class ProductoResource implements Serializable {
      * @param uriInfo
      * @return
      */
-
-
     @PUT
     @Path("")
     @Produces(MediaType.APPLICATION_JSON)
@@ -214,14 +243,12 @@ public class ProductoResource implements Serializable {
     public Response update(
             ProductoDTO productoDTO,
             @Context UriInfo uriInfo) {
-
         if (productoDTO == null || productoDTO.getIdProducto() == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .header(Headers.WRONG_PARAMETER, "El DTO o ID del producto son nulos")
                     .entity("Debe proporcionar un producto válido con ID")
                     .build();
         }
-
         try {
             Producto productoExistente = pBean.findById(productoDTO.getIdProducto());
             if (productoExistente == null) {
@@ -230,7 +257,6 @@ public class ProductoResource implements Serializable {
                         .entity("Producto no encontrado")
                         .build();
             }
-            // setters condicionales para evitar sobrescribir con nulls
             if (productoDTO.getNombre() != null) {
                 productoExistente.setNombre(productoDTO.getNombre());
             }
@@ -259,33 +285,70 @@ public class ProductoResource implements Serializable {
         }
     }
 
+    /**
+     * Metodo para eliminar un producto
+     * @param idProducto
+     * @return
+     */
     @DELETE
     @Path("/{idProducto}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response delete(
-            @PathParam("idProducto") Long idProducto,
-            @QueryParam("idTipoProducto") Integer idTipoProducto) {
-        try {
-            if (idProducto == null || idProducto <= 0) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("ID de producto inválido")
+    public Response delete(@PathParam("idProducto") Long idProducto) {
+        if (idProducto != null && idProducto >= 0) {
+            try {
+                utx.begin();
+                // Elimina relación con TipoProducto (si existe)
+                TipoProducto tipoProducto = pdBean.findTipoProducto(idProducto);
+                if (tipoProducto != null) {
+                    pBean.deleteRelacionTipoProducto(idProducto, tipoProducto.getIdTipoProducto());
+                }
+                //Elimina la relación con ProductoPrecio si tiene
+                ProductoPrecio precio = ppBean.findProductoPrecioByProducto(idProducto);
+                if (precio != null) {
+                    pBean.deleteRelacionPrecio(idProducto);
+                }
+                // Elimina relaciones con Combos si tiene
+                List<ComboDetalle> comboDetalles = cdBean.findByProducto(idProducto);
+                if (comboDetalles != null && !comboDetalles.isEmpty()) {
+                    try {
+                        for (ComboDetalle cd : comboDetalles) {
+                            cdBean.deleteProductoCombo(cd.getComboDetallePK().getIdCombo(), idProducto);
+                        }
+                    } catch (Exception e) {
+                        Logger.getLogger(getClass().getName()).log(Level.WARNING,
+                                "No se pudo eliminar relación con combo", e);
+                    }
+                }
+                pBean.delete(idProducto);
+                utx.commit();
+                return Response.noContent().build();
+            } catch (EntityNotFoundException e) {
+                try {
+                    if (utx.getStatus() == Status.STATUS_ACTIVE) {
+                        utx.rollback();
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error en rollback", ex);
+                }
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(e.getMessage())
+                        .build();
+            } catch (Exception e) {
+                try {
+                    if (utx.getStatus() == Status.STATUS_ACTIVE) {
+                        utx.rollback();
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error en rollback", ex);
+                }
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
+                return Response.serverError()
+                        .entity(e.getMessage())
                         .build();
             }
-            if (idTipoProducto == null || idTipoProducto <= 0) {
-                pBean.delete(idProducto);
-            } else {
-                pBean.deleteRelacion(idProducto, idTipoProducto);
-            }
-            return Response.noContent().build();
-        } catch (EntityNotFoundException e) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity(e.getMessage())
-                    .build();
-        } catch (Exception e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
-            return Response.serverError()
-                    .entity(e.getMessage())
-                    .build();
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
+
 }

@@ -1,30 +1,15 @@
 package sv.edu.ues.ingenieria.tpi135.pupassv.boundary.rest;
 
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.MountableFile;
-import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Orden;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.TipoProducto;
-
-import java.net.URI;
-import java.nio.file.Paths;
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
@@ -34,7 +19,7 @@ public class TipoProductoResourceSI  extends AbstractContainerTest {
     @Test
     @Order(1)
     public void testFindRange() {
-        System.out.println("findRange");
+        System.out.println("TipoProductoResource.findRange");
         Response response = webTarget.path("tipoproducto")
                 .queryParam("first", 0)
                 .queryParam("max", 10)
@@ -53,7 +38,7 @@ public class TipoProductoResourceSI  extends AbstractContainerTest {
     @Test
     @Order(2)
     public void testCreate() {
-        System.out.println("Create");
+        System.out.println("TipoProductoResource.Create");
         TipoProducto tipoProducto = new TipoProducto();
         tipoProducto.setNombre("New tipo");
         tipoProducto.setActivo(true);
@@ -74,7 +59,7 @@ public class TipoProductoResourceSI  extends AbstractContainerTest {
     @Test
     @Order(3)
     public void testFindById() {
-        System.out.println("FindById");
+        System.out.println("TipoProductoResource.FindById");
         Long id = 3L;
         Response findResponse = webTarget.path("tipoproducto").path(id.toString())
                 .request(MediaType.APPLICATION_JSON)
@@ -85,7 +70,7 @@ public class TipoProductoResourceSI  extends AbstractContainerTest {
         assertEquals(id, tipoEncontrado.getIdTipoProducto().longValue());
         assertEquals("tipicos", tipoEncontrado.getNombre());
 
-        // 7. Probar búsqueda para tipo que no existe
+        // busqueda para tipo que no existe
         findResponse = webTarget.path("tipoproducto/999999")
                 .queryParam("first", 0)
                 .queryParam("max", 10)
@@ -98,7 +83,7 @@ public class TipoProductoResourceSI  extends AbstractContainerTest {
     @Test
     @Order(4)
     public void testUpdate() {
-        System.out.println("Update");
+        System.out.println("TipoProductoResource.Update");
         //Se crea un objeto de tipo producto
         TipoProducto tipoProducto = new TipoProducto();
         tipoProducto.setNombre("Tipo actual");
@@ -133,48 +118,43 @@ public class TipoProductoResourceSI  extends AbstractContainerTest {
         assertEquals("Tipo actualizado", tipoActualizado.getNombre());
     }
 
-//    @Test
-//    @Order(5)
-//    public void testDelete() {
-//        System.out.println("Delete");
-//
-//        // Se crea un objeto de tipo producto
-//        TipoProducto tipoProducto = new TipoProducto();
-//        tipoProducto.setNombre("Tipo actual");
-//        tipoProducto.setActivo(true);
-//        tipoProducto.setObservaciones("test actual");
-//
-//        WebTarget target = webTarget.path("tipoproducto");
-//        Response createResponse = target
-//                .request(MediaType.APPLICATION_JSON)
-//                .post(Entity.entity(tipoProducto, MediaType.APPLICATION_JSON));
-//
-//        // Verificar que la creación fue exitosa
-//        assertEquals(Response.Status.CREATED.getStatusCode(), createResponse.getStatus());
-//
-//        // Obtener la ubicación del objeto creado
-//        URI location = createResponse.getLocation();
-//        assertNotNull(location, "La ubicación del recurso no debería ser nula.");
-//
-//        String id = location.getPath().substring(location.getPath().lastIndexOf('/') + 1);
-//
-//        // Eliminamos el tipo
-//        WebTarget deleteTarget = webTarget.path("tipoproducto").path(id);
-//        Response deleteResponse = deleteTarget
-//                .request(MediaType.APPLICATION_JSON)
-//                .delete();
-//
-//        // Verificar que la eliminación fue exitosa
-//        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), deleteResponse.getStatus());
-//
-//        // Intentamos encontrar el recurso eliminado
-//        WebTarget findTarget = webTarget.path("tipoproducto").path(id);
-//        Response findResponse = findTarget
-//                .request(MediaType.APPLICATION_JSON)
-//                .get();
-//
-//        // Verificar que el recurso ya no existe
-//        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), findResponse.getStatus());
-//    }
+    @Test
+    @Order(5)
+    public void testDelete() {
+        System.out.println("TipoProductoResource.Delete");
+        TipoProducto tipoProducto = new TipoProducto();
+        tipoProducto.setNombre("Tipo a eliminar");
+        tipoProducto.setActivo(true);
+        tipoProducto.setObservaciones("Este será eliminado");
+
+        Response createResponse = webTarget.path("tipoproducto")
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(tipoProducto, MediaType.APPLICATION_JSON));
+
+        String location = createResponse.getLocation().toString();
+        Integer id = Integer.parseInt(location.substring(location.lastIndexOf('/') + 1));
+
+        // Eliminar
+        Response deleteResponse = webTarget.path("tipoproducto")
+                .path(id.toString())
+                .request(MediaType.APPLICATION_JSON)
+                .delete();
+
+        assertEquals(Response.Status.OK.getStatusCode(), deleteResponse.getStatus());
+
+        Response getResponse = webTarget.path("tipoproducto")
+                .path(id.toString())
+                .request(MediaType.APPLICATION_JSON)
+                .get();
+
+        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), getResponse.getStatus());
+
+        // Eliminar un registro que no existe
+        Response deleteNonExistentResponse = webTarget.path("tipoproducto")
+                .path("999999")
+                .request(MediaType.APPLICATION_JSON)
+                .delete();
+        assertEquals(422, deleteNonExistentResponse.getStatus());
+    }
 
 }

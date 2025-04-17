@@ -33,7 +33,10 @@ import java.io.Serializable;
                 query = "DELETE FROM ComboDetalle cd WHERE cd.comboDetallePK.idCombo = :idCombo"),
         @NamedQuery(name = "ComboDetalle.deleteProductoCombo",
                 query = "DELETE FROM ComboDetalle cd WHERE cd.comboDetallePK.idCombo = :idCombo " +
-                        "AND cd.comboDetallePK.idProducto = :idProducto")})
+                        "AND cd.comboDetallePK.idProducto = :idProducto"),
+        @NamedQuery(name = "ComboDetalle.findByProducto",
+                query = "SELECT cd FROM ComboDetalle cd WHERE cd.comboDetallePK.idProducto = :idProducto")
+})
 public class ComboDetalle implements Serializable {
 
     private static final long serialVersionUID = 1L;

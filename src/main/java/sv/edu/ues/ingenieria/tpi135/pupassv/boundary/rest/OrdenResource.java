@@ -1,15 +1,26 @@
 package sv.edu.ues.ingenieria.tpi135.pupassv.boundary.rest;
 
+import jakarta.annotation.Resource;
 import jakarta.inject.Inject;
+import jakarta.transaction.Status;
+import jakarta.transaction.UserTransaction;
 import jakarta.validation.constraints.Max;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import sv.edu.ues.ingenieria.tpi135.pupassv.DTO.OrdenDTO;
+import sv.edu.ues.ingenieria.tpi135.pupassv.DTO.OrdenDetalleDTO;
 import sv.edu.ues.ingenieria.tpi135.pupassv.control.OrdenBean;
-import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Orden;
+import sv.edu.ues.ingenieria.tpi135.pupassv.control.OrdenDetalleBean;
+import sv.edu.ues.ingenieria.tpi135.pupassv.control.PagoBean;
+import sv.edu.ues.ingenieria.tpi135.pupassv.control.ProductoPrecioBean;
+import sv.edu.ues.ingenieria.tpi135.pupassv.entity.*;
 
 /**
  * Recurso REST para gestionar entidades de tipo Orden.
@@ -21,7 +32,15 @@ import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Orden;
 public class OrdenResource implements Serializable {
 
     @Inject
-    private OrdenBean oBean;
+    OrdenBean oBean;
+    @Inject
+    PagoBean pgBean;
+    @Inject
+    OrdenDetalleBean odBean;
+    @Inject
+    ProductoPrecioBean ppBean;
+    @Resource
+    UserTransaction utx; //Manejador de transacciones
 
     /**
      * Obtiene un rango de órdenes basado en parámetros de paginación.
@@ -38,8 +57,13 @@ public class OrdenResource implements Serializable {
         try {
             if (firstResult >= 0 && maxResult > 0 && maxResult <= 50) {
                 List<Orden> encontrados = oBean.findRange(firstResult, maxResult);
+                // Convertir las entidades a DTOs
+                List<OrdenDTO> dtos = encontrados.stream()
+                        .map(oBean::convertirAOrdenDTO)
+                        .collect(Collectors.toList());
+
                 Long total = oBean.count();
-                return Response.ok(encontrados)
+                return Response.ok(dtos)
                         .header("Total-Records", total)
                         .type(MediaType.APPLICATION_JSON)
                         .build();
@@ -55,8 +79,7 @@ public class OrdenResource implements Serializable {
     }
 
     /**
-     * Busca una orden por su identificador único.
-     *
+     * Busca una orden por su id
      * @param id Identificador de la orden.
      * @return Respuesta HTTP con la orden encontrada o un código de error si no existe.
      */
@@ -66,9 +89,12 @@ public class OrdenResource implements Serializable {
     public Response findById(@PathParam("id") Long id) {
         if (id != null && id > 0) {
             try {
-                Orden encontrado = oBean.findById(id);
-                if (encontrado != null) {
-                    return Response.ok(encontrado).type(MediaType.APPLICATION_JSON).build();
+                Orden orden = oBean.findById(id);
+                if (orden != null) {
+                    OrdenDTO dto = oBean.convertirAOrdenDTO(orden);
+                    List<Pago> pago = pgBean.findPagosByOrdenId(orden.getIdOrden());
+                    dto.setPagos(pago);
+                    return Response.ok(dto).type(MediaType.APPLICATION_JSON).build();
                 }
                 return Response.status(404).header("Not-found", "id:" + id).build();
             } catch (Exception e) {
@@ -80,84 +106,254 @@ public class OrdenResource implements Serializable {
     }
 
     /**
+     * Obtiene un pago específico de una orden
+     * @param idOrden ID de la orden
+     * @return Respuesta con el pago solicitado
+     */
+    @GET
+    @Path("/{idOrden}/pago")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPagoDeOrden(
+            @PathParam("idOrden") Long idOrden) {
+        try {
+            Orden orden = oBean.findById(idOrden);
+            if (orden == null) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+           List<Pago> pagos = pgBean.findPagosByOrdenId(idOrden);
+            if (pagos == null ) {
+                return Response.status(Response.Status.NOT_FOUND)  .build();
+            }
+            return Response.ok(pagos).build();
+        } catch (Exception e) {
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
+            return Response.serverError()
+                    .entity("Error al obtener el pago: " + e.getMessage())
+                    .build();
+        }
+    }
+
+
+    /**
      * Crea una nueva orden en el sistema.
      *
-     * @param Orden Objeto Orden a crear.
+     * @param orden Objeto Orden a crear.
      * @param uriInfo Información sobre la URI de la petición.
      * @return Respuesta HTTP con la URI de la orden creada o un código de error.
      */
+
     @POST
+    @Path("")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response create(Orden orden, @Context UriInfo uriInfo) {
+        if (orden == null || orden.getSucursal() == null || orden.getSucursal().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Datos de orden inválidos: sucursal es requerida")
+                    .build();
+        }
+        try {
+            utx.begin();
+            if (orden.getAnulada() == null) {
+                orden.setAnulada(false);
+            }
+            if (orden.getFecha() == null) {
+                orden.setFecha(new Date());
+            }
+            oBean.create(orden);
+            utx.commit();
+            UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder()
+                    .path(orden.getIdOrden().toString());
+            return Response.created(uriBuilder.build()).build();
+        } catch (Exception e) {
+            try {
+                if (utx.getStatus() == Status.STATUS_ACTIVE) {
+                    utx.rollback();
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error en rollback", ex);
+            }
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al crear orden", e);
+            return Response.serverError()
+                    .entity("Error al crear la orden: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Metodo para actualizar una orden
+     * @param id
+     * @param ordenDTO
+     * @return
+     */
+    @PUT
+    @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(Orden Orden, @Context UriInfo uriInfo) {
-        if (Orden != null && Orden.getIdOrden() == null) {
+    public Response update(@PathParam("id") Long id, OrdenDTO ordenDTO) {
+        if (id != null && id > 0 && ordenDTO != null) {
             try {
-                oBean.create(Orden);
-                if (Orden.getIdOrden() != null) {
-                    UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
-                    uriBuilder.path(String.valueOf(Orden.getIdOrden()));
-                    return Response.created(uriBuilder.build()).build();
+                Orden ordenExistente = oBean.findById(id);
+                if (ordenExistente != null) {
+                    ordenExistente.setFecha(ordenDTO.getFecha());
+                    ordenExistente.setSucursal(ordenDTO.getSucursal());
+                    ordenExistente.setAnulada(ordenDTO.getAnulada());
+                    oBean.update(ordenExistente);
+                    return Response.ok(oBean.convertirAOrdenDTO(ordenExistente)).build();
                 }
-                return Response.status(500).header("Process-Error", "Record couldn't be created").build();
+                return Response.status(404).header("Not-found", "id:" + id).build();
             } catch (Exception e) {
                 Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
                 return Response.status(500).entity(e.getMessage()).build();
             }
         }
-        return Response.status(422).header("Wrong-Parameter", "Orden:" + Orden).build();
+        return Response.status(422).header("Wrong-Parameter", "id:" + id + " OrdenDTO:" + ordenDTO).build();
     }
 
-//    /**
-//     * Método de actualización de órdenes. (Aún no implementado)
-//     *
-//     * @param id de la Orden a actualizar.
-//     * @return Respuesta HTTP.
-//     */
-//    @PUT
-//    @Path("/{id}")
-//    @Produces(MediaType.APPLICATION_JSON)
-//    @Consumes(MediaType.APPLICATION_JSON)
-//    public Response update(@PathParam("id") Long id, Orden tipoOrden) {
-//        if (id != null && id > 0) {
-//            try {
-//                // Verificar si la orden con el ID existe
-//                Orden ordenExistente = oBean.findById(id);
-//                if (ordenExistente != null) {
-//                    // Actualizar los valores de la orden con los nuevos datos
-//                    ordenExistente.setFecha(tipoOrden.getFecha());
-//                    ordenExistente.setSucursal(tipoOrden.getSucursal());
-//                    // Aquí agregar los demás campos que deseas actualizar
-//                    oBean.update(ordenExistente);
-//                    return Response.ok(ordenExistente).build();
-//                }
-//                return Response.status(404).header("Not-found", "id:" + id).build();
-//            } catch (Exception e) {
-//                Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
-//                return Response.status(500).entity(e.getMessage()).build();
-//            }
-//        }
-//        return Response.status(422).header("Wrong-Parameter", "id:" + id).build();
-//    }
-//
-//
-//    @DELETE
-//    @Path("/{id}")
-//    @Produces(MediaType.APPLICATION_JSON)
-//    public Response delete(@PathParam("id") Long id) {
-//        if (id != null && id > 0) {
-//            try {
-//                // Verificar si la orden con el ID existe
-//                Orden ordenExistente = oBean.findById(id);
-//                if (ordenExistente != null) {
-//                    oBean.delete(ordenExistente);
-//                    return Response.noContent().build(); // 204 No Content indica que se eliminó correctamente
-//                }
-//                return Response.status(404).header("Not-found", "id:" + id).build();
-//            } catch (Exception e) {
-//                Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
-//                return Response.status(500).entity(e.getMessage()).build();
-//            }
-//        }
-//        return Response.status(422).header("Wrong-Parameter", "id:" + id).build();
-//    }
+    /**
+     * Metodo para eliminar una orden
+     * @param id
+     * @return
+     */
+    @DELETE
+    @Path("/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response delete(@PathParam("id") Long id) {
+        if (id != null && id > 0) {
+            try {
+                Orden ordenExistente = oBean.findById(id);
+                if (ordenExistente != null) {
+                    pgBean.eliminarRelacionOrdenPago(id);
+                    odBean.eliminarRelacionOrdenDetalle(id);
+                    oBean.delete(id);
+                    return Response.noContent().build();
+                }
+                return Response.status(404).header("Not-found", "id:" + id).build();
+            } catch (Exception e) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
+                return Response.status(500).entity(e.getMessage()).build();
+            }
+        }
+        return Response.status(422).header("Wrong-Parameter", "id:" + id).build();
+    }
+
+    /**
+     * Agrega un producto a una orden existente.
+     *
+     * @param idOrden Identificador de la orden.
+     * @param detalleDTO DTO con los datos del producto a agregar.
+     * @return Respuesta HTTP indicando éxito o error.
+     */
+    @POST
+    @Path("/{id}/productos")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addProducto(
+            @PathParam("id") Long idOrden,
+            OrdenDetalleDTO detalleDTO) {
+        if (idOrden != null
+                && idOrden > 0
+                && detalleDTO != null
+                && detalleDTO.getIdProducto() != null
+                && detalleDTO.getCantidad() > 0) {
+            try {
+                utx.begin();
+                Orden orden = oBean.findById(idOrden);
+                if (orden != null) {
+                    if (!Boolean.TRUE.equals(orden.getAnulada())) {
+                        ProductoPrecio productoPrecio = ppBean.findProductoPrecioByProducto(detalleDTO.getIdProducto());
+                        if (productoPrecio != null ) {
+                            OrdenDetallePK pk = new OrdenDetallePK(idOrden, productoPrecio.getIdProductoPrecio());
+                            OrdenDetalle existente = odBean.findByPk(pk);
+                            if (existente == null) {
+                                OrdenDetalle detalle = new OrdenDetalle(pk);
+                                detalle.setOrden(oBean.getOrdenReference(idOrden));
+                                detalle.setProductoPrecio(productoPrecio);
+                                detalle.setCantidad(detalleDTO.getCantidad());
+                                BigDecimal precio = detalleDTO.getPrecioUnitario() != null ?
+                                        detalleDTO.getPrecioUnitario() :
+                                        productoPrecio.getPrecioSugerido();
+                                detalle.setPrecio(precio);
+                                detalle.setObservaciones(detalleDTO.getObservaciones());
+                                odBean.create(detalle);
+                                utx.commit();
+                                return Response.ok().build();
+                            } else {
+                                throw new IllegalStateException("El producto ya está agregado a esta orden.");
+                            }
+                        } else {
+                            throw new RuntimeException("No se encontró precio activo para el producto con id: " + detalleDTO.getIdProducto());
+                        }
+                    } else {
+                        return Response.status(Response.Status.BAD_REQUEST).build();
+                    }
+                } else {
+                    return Response.status(Response.Status.NOT_FOUND).build();
+                }
+            } catch (Exception e) {
+                try {
+                    if (utx.getStatus() == Status.STATUS_ACTIVE) {
+                        utx.rollback();
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error en rollback", ex);
+                }
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al agregar producto a orden", e);
+                return Response.serverError().build();
+            }
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Metodo para eliminar un producto de una orden
+     * @param idOrden
+     * @param idProducto
+     * @return
+     */
+    @DELETE
+    @Path("/{idOrden}/productos/{idProducto}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteProducto(
+            @PathParam("idOrden") Long idOrden,
+            @PathParam("idProducto") Long idProducto) {
+
+        if (idOrden != null && idOrden > 0 && idProducto != null && idProducto > 0) {
+            try {
+                utx.begin();
+                Orden orden = oBean.findById(idOrden);
+                if (orden != null) {
+                    if (!Boolean.TRUE.equals(orden.getAnulada())) {
+                        ProductoPrecio productoPrecio = ppBean.findProductoPrecioByProducto(idProducto);
+                        if (productoPrecio != null) {
+                            OrdenDetallePK pk = new OrdenDetallePK(idOrden, productoPrecio.getIdProductoPrecio());
+                            odBean.eliminarProductoDeOrden(pk);
+                            utx.commit();
+                            return Response.noContent().build();
+                        } else {
+                            return Response.status(Response.Status.NOT_FOUND) .build();
+                        }
+                    } else {
+                        return Response.status(Response.Status.BAD_REQUEST).build();
+                    }
+                } else {
+                    return Response.status(Response.Status.NOT_FOUND).build();
+                }
+            } catch (Exception e) {
+                try {
+                    if (utx.getStatus() == Status.STATUS_ACTIVE) {
+                        utx.rollback();
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error en rollback", ex);
+                }
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al eliminar producto de orden", e);
+                return Response.serverError().entity("Error al eliminar producto de la orden: " + e.getMessage()).build();
+            }
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
+
 }

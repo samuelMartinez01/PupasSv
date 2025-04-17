@@ -456,6 +456,8 @@ INSERT INTO public.tipo_producto VALUES (3, 'tipicos', true, NULL);
 INSERT INTO public.orden VALUES (1431, '2025-01-01', 'ZARZA', false);
 INSERT INTO public.orden VALUES (1432, '2025-01-01', 'ZARZA', false);
 INSERT INTO public.orden VALUES (1433, '2025-01-01', 'ZARZA', false);
+INSERT INTO public.orden VALUES (1434, '2025-01-01', 'ZARZA', false);
+
 
 
 --
@@ -704,14 +706,17 @@ INSERT INTO public.producto (id_producto, nombre, activo, observaciones) VALUES
                                                                              (2, 'Papas Fritas', true, NULL),
                                                                              (3, 'Refresco', true, NULL),
                                                                              (4, 'Helado', true, NULL),
-                                                                             (5,'Cerveza', true, NULL);
+                                                                             (5,'Cerveza', true, NULL),
+                                                                             (6, 'soda', true, NULL),
+                                                                             (7,'jjo',true, NULL);
 INSERT INTO public.producto_precio (id_producto_precio, id_producto, fecha_desde, fecha_hasta, precio_sugerido) VALUES
                                                                                                                     (1, 1, '2025-01-01', NULL, 5.99),  -- Hamburguesa
                                                                                                                     (2, 2, '2025-01-01', NULL, 2.50),   -- Papas Fritas
                                                                                                                     (3, 3, '2025-01-01', NULL, 1.75),   -- Refresco
                                                                                                                     (4, 4, '2025-01-01', NULL, 2.25),
-                                                                                                                    (5, 5, '2025-01-01', NULL, 1.50 );   -- Helado
-
+                                                                                                                    (5, 5, '2025-01-01', NULL, 1.50 ),
+                                                                                                                    (53, 7, '2025-01-01', NULL, 1.50 );  -- Helado
+SELECT pg_catalog.setval('public.producto_precio_id_producto_precio_seq', 5, true);
 -- 2. Insertar COMBOS
 INSERT INTO public.combo (id_combo, nombre, activo, descripcion_publica) VALUES
                                                                              (1, 'Combo Familiar', true, 'Incluye hamburguesa y papas fritas'),
@@ -724,8 +729,36 @@ INSERT INTO public.combo_detalle (id_combo, id_producto, cantidad, activo) VALUE
                                                                                (2, 3, 1, true),
                                                                                (2, 4, 1, true),
                                                                                (2,5, 1, true);
+                                                                              -- (2, 6, 3, true);
 
-SELECT pg_catalog.setval('public.producto_id_producto_seq', 4, true);  -- Último ID usado: 4
+SELECT pg_catalog.setval('public.producto_id_producto_seq', 7, true);
+
+INSERT INTO public.orden_detalle (id_orden, id_producto_precio, cantidad, precio, observaciones)
+VALUES (1431, 1, 2, 5.99, 'Sin cebolla'),
+       (1433, 2, 2, 5.99, 'Sin Aceite'),
+       (1434, 3, 2, 5.99, 'Sin Aceite') ;
+
+INSERT INTO public.producto_detalle (id_tipo_producto, id_producto, activo, observaciones) VALUES
+                                                                                               (1,3, true, 'si'),
+                                                                                               (1, 5, true, 'NO');
+                                                                                             --  (1, 6, true, 'Bebdida');
+
+                                                                                             -- Insertar pagos para la orden 1431
+INSERT INTO public.pago (id_pago, id_orden, fecha, metodo_pago, referencia) VALUES
+                                                                                (1, 1431, '2025-01-01', 'EFECTIVO', 'Pago en caja'),
+                                                                                (2, 1432, '2025-01-01', 'TARJETA', 'Term-1234');
+
+-- Actualizar la secuencia de pago
+SELECT pg_catalog.setval('public.pago_id_pago_seq', 2, true);
+
+-- Insertar detalles de pago
+INSERT INTO public.pago_detalle (id_pago_detalle, id_pago, monto, observaciones) VALUES
+                                                                                     (1, 1, 20.00, 'Primer abono'),
+                                                                                     (2, 1, 15.50, 'Pago con tarjeta visa'),
+                                                                                     (3, 2, 15.50, 'Pago con tarjeta visa');
+
+-- Actualizar la secuencia de detalles de pago
+SELECT pg_catalog.setval('public.pago_detalle_id_pago_detalle_seq', 3, true);
 -- Completed on 2025-02-14 23:30:13 UTC
 
 --

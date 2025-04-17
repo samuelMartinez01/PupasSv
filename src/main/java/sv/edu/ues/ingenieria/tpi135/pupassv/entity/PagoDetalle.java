@@ -4,6 +4,8 @@
  */
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,7 +33,9 @@ import java.math.BigDecimal;
     @NamedQuery(name = "PagoDetalle.findAll", query = "SELECT p FROM PagoDetalle p"),
     @NamedQuery(name = "PagoDetalle.findByIdPagoDetalle", query = "SELECT p FROM PagoDetalle p WHERE p.idPagoDetalle = :idPagoDetalle"),
     @NamedQuery(name = "PagoDetalle.findByMonto", query = "SELECT p FROM PagoDetalle p WHERE p.monto = :monto"),
-    @NamedQuery(name = "PagoDetalle.findByObservaciones", query = "SELECT p FROM PagoDetalle p WHERE p.observaciones = :observaciones")})
+    @NamedQuery(name = "PagoDetalle.findByObservaciones", query = "SELECT p FROM PagoDetalle p WHERE p.observaciones = :observaciones"),
+        @NamedQuery(name = "PagoDetalle.findByPagoId",
+                query = "SELECT d FROM PagoDetalle d WHERE d.idPago.idPago = :idPago")})
 public class PagoDetalle implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -46,6 +50,7 @@ public class PagoDetalle implements Serializable {
     @Size(max = 2147483647)
     @Column(name = "observaciones")
     private String observaciones;
+    @JsonIgnore
     @JoinColumn(name = "id_pago", referencedColumnName = "id_pago")
     @ManyToOne
     private Pago idPago;
@@ -54,6 +59,7 @@ public class PagoDetalle implements Serializable {
     }
 
     public PagoDetalle(Long idPagoDetalle) {
+
         this.idPagoDetalle = idPagoDetalle;
     }
 

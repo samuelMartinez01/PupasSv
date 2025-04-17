@@ -58,8 +58,17 @@ public abstract class AbstractDataAccess<T> {
             }
             em.persist(entity);
             em.flush();
+        } catch (PersistenceException pe) {
+            // Captura específicamente errores de persistencia
+            String errorMsg = "Error al persistir entidad: " + pe.getMessage();
+            if (pe.getCause() != null) {
+                errorMsg += " - Causa: " + pe.getCause().getMessage();
+            }
+            throw new IllegalStateException(errorMsg, pe);
         } catch (Exception ex) {
-            throw new IllegalStateException("Error al crear la entidad", ex);
+            // Captura otros errores genéricos
+            String errorMsg = "Error inesperado al crear entidad: " + ex.getMessage();
+            throw new IllegalStateException(errorMsg, ex);
         }
     }
 

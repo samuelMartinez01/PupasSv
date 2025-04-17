@@ -42,13 +42,17 @@ import java.util.List;
     @NamedQuery(name = "ProductoPrecio.findByPrecioSugerido", query = "SELECT p FROM ProductoPrecio p WHERE p.precioSugerido = :precioSugerido"),
         @NamedQuery(name = "ProductoPrecio.findByIdPrecioProducto",
                 query = "SELECT p FROM ProductoPrecio p WHERE p.idProducto.idProducto = :idProducto ORDER BY p.fechaDesde DESC"),
-        @NamedQuery(name = "ProductoPrecio.findCurrentByProducto",
+        @NamedQuery(name = "ProductoPrecio.findProductoPrecioByIdProducto",
                 query = "SELECT p FROM ProductoPrecio p WHERE p.idProducto.idProducto = :idProducto "
                         + "AND (p.fechaHasta IS NULL OR p.fechaHasta >= CURRENT_DATE) "
                         + "ORDER BY p.fechaDesde DESC"),
         @NamedQuery(name = "ProductoPrecio.findByIdProducto",
                 query = "SELECT p FROM ProductoPrecio p WHERE p.idProducto.idProducto = :idProducto "
-                        + "ORDER BY p.fechaDesde DESC")})
+                        + "ORDER BY p.fechaDesde DESC"),
+        @NamedQuery(name = "ProductoPrecio.deleteRelacionPrecio",
+                query = "DELETE FROM ProductoPrecio p WHERE p.idProducto.idProducto = :idProducto"),
+        @NamedQuery(name = "OrdenDetalle.deleteByProductoPrecioProducto",
+                query = "DELETE FROM OrdenDetalle od WHERE od.productoPrecio.idProducto.idProducto = :idProducto")})
 public class ProductoPrecio implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -67,6 +71,7 @@ public class ProductoPrecio implements Serializable {
     @Column(name = "precio_sugerido")
     private BigDecimal precioSugerido;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "productoPrecio")
+    @JsonBackReference("hyy")
     private List<OrdenDetalle> ordenDetalleList;
     @JoinColumn(name = "id_producto", referencedColumnName = "id_producto")
     @ManyToOne

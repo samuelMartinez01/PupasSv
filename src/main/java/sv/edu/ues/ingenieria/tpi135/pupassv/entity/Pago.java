@@ -4,6 +4,8 @@
  */
 package sv.edu.ues.ingenieria.tpi135.pupassv.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,7 +39,11 @@ import java.util.List;
     @NamedQuery(name = "Pago.findByIdPago", query = "SELECT p FROM Pago p WHERE p.idPago = :idPago"),
     @NamedQuery(name = "Pago.findByFecha", query = "SELECT p FROM Pago p WHERE p.fecha = :fecha"),
     @NamedQuery(name = "Pago.findByMetodoPago", query = "SELECT p FROM Pago p WHERE p.metodoPago = :metodoPago"),
-    @NamedQuery(name = "Pago.findByReferencia", query = "SELECT p FROM Pago p WHERE p.referencia = :referencia")})
+    @NamedQuery(name = "Pago.findByReferencia", query = "SELECT p FROM Pago p WHERE p.referencia = :referencia"),
+        @NamedQuery(name = "Pago.deleteByOrdenId",
+                query = "DELETE FROM Pago p WHERE p.idOrden.idOrden = :idOrden"),
+        @NamedQuery(name = "Pago.findByOrdenId",
+                query = "SELECT p FROM Pago p WHERE p.idOrden.idOrden = :idOrden")})
 public class Pago implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -56,6 +62,7 @@ public class Pago implements Serializable {
     @Column(name = "referencia")
     private String referencia;
     @OneToMany(mappedBy = "idPago")
+    @JsonIgnore
     private List<PagoDetalle> pagoDetalleList;
     @JoinColumn(name = "id_orden", referencedColumnName = "id_orden")
     @ManyToOne
