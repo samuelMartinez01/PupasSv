@@ -7,7 +7,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceException;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Producto;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.logging.Level;
@@ -99,5 +98,15 @@ public class ProductoBean extends AbstractDataAccess<Producto> implements Serial
         }
     }
 
+    public EntityManager getEm() {
+        return em;
+    }
+
+    public void setEm(EntityManager em) {
+        this.em = em;
+    }
+
+    public void setEntityManager(EntityManager em) {
+    }
 
 }

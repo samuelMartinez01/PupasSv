@@ -58,4 +58,6 @@ public class ProductoComboDTO {
     public void setPrecioTotal(BigDecimal precioTotal) {
         this.precioTotal = precioTotal;
     }
+
+
 }
