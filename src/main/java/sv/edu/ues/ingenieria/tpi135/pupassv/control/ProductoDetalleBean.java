@@ -5,7 +5,6 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ProductoDetalle;
-
 import java.io.Serializable;
 
 @Stateless

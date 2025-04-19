@@ -1,34 +1,33 @@
 package sv.edu.ues.ingenieria.tpi135.pupassv.control;
+
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
+
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import org.mockito.Mockito;
-import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Orden;
-
+import sv.edu.ues.ingenieria.tpi135.pupassv.entity.TipoProducto;
 /**
  *
- * @author samuel
+ * @author wolf
  */
-public class OrdenBeanTest {
-    
-    protected List<Orden> findResult;
 
-    public OrdenBeanTest() {
-        findResult = Arrays.asList(new Orden[]{new Orden(1l), new Orden(2l), new Orden(3l)});
+public class TipoProductoBeanTest {
+
+    protected List<TipoProducto> findResult;
+
+    public TipoProductoBeanTest() {
+        findResult = Arrays.asList(new TipoProducto[]{new TipoProducto(1), new TipoProducto(2), new TipoProducto(3)});
     }
-    /**
-     * Test of getEntityManager method, of class OrdenBean.
-     */
-    
+
     @Test
     void create() {
-        System.out.println("OrdenBeanTest create");
+        System.out.println("TipoProductoBeanTest create");
         EntityManager mockEM = Mockito.mock(EntityManager.class);
-        Orden nuevo = new Orden();
-        OrdenBean cut = new OrdenBean();
+        TipoProducto nuevo = new TipoProducto();
+        TipoProductoBean cut = new TipoProductoBean();
         assertThrows(IllegalArgumentException.class, () -> {
             cut.create(null);
         });
@@ -41,46 +40,41 @@ public class OrdenBeanTest {
 
     @Test
     void findById() {
-        System.out.println("OrdenBeanTest.findById");
+        System.out.println("TipoProductoBeanTest.findById");
 
-        // Configuración del mock
         EntityManager mock = Mockito.mock(EntityManager.class);
-        OrdenBean cut = new OrdenBean();
+        TipoProductoBean cut = new TipoProductoBean();
         cut.em = mock;
 
-        // 1. Test para ID existente
         final Long idExistente = 1L;
-        Orden esperadoExistente = new Orden(idExistente);
-        Mockito.when(mock.find(Orden.class, idExistente)).thenReturn(esperadoExistente);
+        TipoProducto esperadoExistente = new TipoProducto(Math.toIntExact(idExistente));
+        Mockito.when(mock.find(TipoProducto.class, idExistente)).thenReturn(esperadoExistente);
 
-        Orden resultadoExistente = cut.findById(idExistente);
+        TipoProducto resultadoExistente = cut.findById(idExistente);
         assertNotNull(resultadoExistente);
         assertEquals(esperadoExistente, resultadoExistente);
 
-        // 2. Test para ID que no existe
         final Long idNoExistente = 999L;
-        Mockito.when(mock.find(Orden.class, idNoExistente)).thenReturn(null);
+        Mockito.when(mock.find(TipoProducto.class, idNoExistente)).thenReturn(null);
 
-        Orden resultadoNoExistente = cut.findById(idNoExistente);
+        TipoProducto resultadoNoExistente = cut.findById(idNoExistente);
         assertNull(resultadoNoExistente);
 
-        // 3. Test para EntityManager no disponible
         cut.em = null;
         assertThrows(IllegalStateException.class, () -> {
             cut.findById(idExistente);
         });
 
-        // 4. Test para ID nulo
-        Orden resultadoIdNulo = cut.findById(null);
+        TipoProducto resultadoIdNulo = cut.findById(null);
         assertNull(resultadoIdNulo);
     }
-    
+
     @Test
     void findRange() {
-        System.out.println("OrdenBeanTest.findRange");
+        System.out.println("TipoProductoBeanTest.findRange");
         int first = 0;
         int max = 1000;
-        OrdenBean cut = new OrdenBean();
+        TipoProductoBean cut = new TipoProductoBean();
         assertThrows(IllegalArgumentException.class, () -> {
             cut.findRange(-1, 10);
         });
@@ -91,82 +85,71 @@ public class OrdenBeanTest {
             cut.findRange(first, max);
         });
         CriteriaBuilder cbMock = Mockito.mock(CriteriaBuilder.class);
-        CriteriaQuery<Orden> cqMock = Mockito.mock(CriteriaQuery.class);
+        CriteriaQuery<TipoProducto> cqMock = Mockito.mock(CriteriaQuery.class);
         Root rootMock = Mockito.mock(Root.class);
-        Mockito.when(cqMock.from(Orden.class)).thenReturn(rootMock);
+        Mockito.when(cqMock.from(TipoProducto.class)).thenReturn(rootMock);
         EntityManager emMock = Mockito.mock(EntityManager.class);
         TypedQuery tqMock = Mockito.mock(TypedQuery.class);
         Mockito.when(tqMock.getResultList()).thenReturn(findResult);
         Mockito.when(emMock.createQuery(cqMock)).thenReturn(tqMock);
-        Mockito.when(cbMock.createQuery(Orden.class)).thenReturn(cqMock);
+        Mockito.when(cbMock.createQuery(TipoProducto.class)).thenReturn(cqMock);
         Mockito.when(emMock.getCriteriaBuilder()).thenReturn(cbMock);
         cut.em = emMock;
-        List<Orden> encontrados = cut.findRange(first, max);
+        List<TipoProducto> encontrados = cut.findRange(first, max);
         assertNotNull(encontrados);
         assertEquals(findResult.size(), encontrados.size());
     }
 
     @Test
     void delete() {
-        System.out.println("OrdenBeanTest.delete");
-        OrdenBean cut = new OrdenBean();
+        System.out.println("TipoProductoBeanTest.delete");
+        TipoProductoBean cut = new TipoProductoBean();
 
-        // 1. Configurar el mock del EntityManager
         EntityManager emMock = Mockito.mock(EntityManager.class);
         cut.em = emMock;
 
-        // 2. Mockear los componentes de Criteria API
         CriteriaBuilder cbMock = Mockito.mock(CriteriaBuilder.class);
-        CriteriaDelete<Orden> cdMock = Mockito.mock(CriteriaDelete.class);
-        Root<Orden> rootMock = Mockito.mock(Root.class);
+        CriteriaDelete<TipoProducto> cdMock = Mockito.mock(CriteriaDelete.class);
+        Root<TipoProducto> rootMock = Mockito.mock(Root.class);
 
         Mockito.when(emMock.getCriteriaBuilder()).thenReturn(cbMock);
-        Mockito.when(cbMock.createCriteriaDelete(Orden.class)).thenReturn(cdMock);
-        Mockito.when(cdMock.from(Orden.class)).thenReturn(rootMock);
+        Mockito.when(cbMock.createCriteriaDelete(TipoProducto.class)).thenReturn(cdMock);
+        Mockito.when(cdMock.from(TipoProducto.class)).thenReturn(rootMock);
 
-        // 3. Prueba con ID nulo o inválido
         assertThrows(IllegalArgumentException.class, () -> {
             cut.delete(null);
         });
         assertThrows(IllegalArgumentException.class, () -> {
-            cut.delete(0L); // ID <= 0
+            cut.delete(0L);
         });
 
-        // 4. Prueba cuando EntityManager no está disponible
         cut.em = null;
         assertThrows(IllegalStateException.class, () -> {
             cut.delete(1L);
         });
-        cut.em = emMock; // Restaurar el mock
+        cut.em = emMock;
 
-        // 5. Mockear la entidad a eliminar
-        Orden ordenMock = new Orden(1L);
-        Mockito.when(emMock.find(Orden.class, 1L)).thenReturn(ordenMock);
+        TipoProducto tipoProductoMock = new TipoProducto(1);
+        Mockito.when(emMock.find(TipoProducto.class, 1L)).thenReturn(tipoProductoMock);
 
-        // 6. Mockear la condición WHERE
         Predicate predicateMock = Mockito.mock(Predicate.class);
-        Mockito.when(cbMock.equal(rootMock, ordenMock)).thenReturn(predicateMock);
+        Mockito.when(cbMock.equal(rootMock, tipoProductoMock)).thenReturn(predicateMock);
         Mockito.when(cdMock.where(predicateMock)).thenReturn(cdMock);
 
-        // 7. Mockear la ejecución de la consulta
         Query queryMock = Mockito.mock(Query.class);
         Mockito.when(emMock.createQuery(cdMock)).thenReturn(queryMock);
-        Mockito.when(queryMock.executeUpdate()).thenReturn(1); // 1 fila afectada
+        Mockito.when(queryMock.executeUpdate()).thenReturn(1);
 
-        // 8. Ejecutar el delete exitoso
         cut.delete(1L);
 
-        // 9. Verificar que se ejecutó la consulta
         Mockito.verify(emMock, Mockito.times(1)).createQuery(cdMock);
         Mockito.verify(queryMock, Mockito.times(1)).executeUpdate();
 
-        // 10. Prueba cuando la entidad no existe
-        Mockito.when(emMock.find(Orden.class, 2L)).thenReturn(null);
+        Mockito.when(emMock.find(TipoProducto.class, 2L)).thenReturn(null);
         assertThrows(EntityNotFoundException.class, () -> {
             cut.delete(2L);
         });
 
-        // 11. Prueba error en persistencia
         Mockito.when(queryMock.executeUpdate()).thenThrow(new PersistenceException());
         assertThrows(PersistenceException.class, () -> {
             cut.delete(1L);
@@ -175,9 +158,9 @@ public class OrdenBeanTest {
 
     @Test
     void update() {
-        System.out.println("OrdenBeanTest.update");
-        OrdenBean cut = new OrdenBean();
-        Orden modificado = new Orden(1l);
+        System.out.println("TipoProductoBeanTest.update");
+        TipoProductoBean cut = new TipoProductoBean();
+        TipoProducto modificado = new TipoProducto(1);
         assertThrows(IllegalArgumentException.class, () -> {
             cut.update(null);
         });
@@ -187,15 +170,15 @@ public class OrdenBeanTest {
         EntityManager emMock = Mockito.mock(EntityManager.class);
         Mockito.when(emMock.merge(modificado)).thenReturn(modificado);
         cut.em = emMock;
-        Orden resultado = cut.update(modificado);
+        TipoProducto resultado = cut.update(modificado);
         assertNotNull(resultado);
         assertEquals(modificado, resultado);
     }
 
     @Test
     void count() {
-        System.out.println("OrdenBeanTest.count");
-        OrdenBean cut = new OrdenBean();
+        System.out.println("TipoProductoBeanTest.count");
+        TipoProductoBean cut = new TipoProductoBean();
         assertThrows(IllegalStateException.class, () -> {
             cut.count();
         });
@@ -204,7 +187,7 @@ public class OrdenBeanTest {
         CriteriaQuery<Long> cqMock = Mockito.mock(CriteriaQuery.class);
         Root rootMock = Mockito.mock(Root.class);
         Expression exMock = Mockito.mock(Expression.class);
-        Mockito.when(cqMock.from(Orden.class)).thenReturn(rootMock);
+        Mockito.when(cqMock.from(TipoProducto.class)).thenReturn(rootMock);
         Mockito.when(cbMock.count(rootMock)).thenReturn(exMock);
         Mockito.when(cbMock.createQuery(Long.class)).thenReturn(cqMock);
         TypedQuery tqMock = Mockito.mock(TypedQuery.class);

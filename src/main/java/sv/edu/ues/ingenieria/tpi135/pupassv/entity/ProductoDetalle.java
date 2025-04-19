@@ -54,7 +54,7 @@ public class ProductoDetalle implements Serializable {
     @ManyToOne(optional = false)
     private TipoProducto tipoProducto;
 
-    public ProductoDetalle() {
+    public ProductoDetalle(long l) {
     }
 
     public ProductoDetalle(ProductoDetallePK productoDetallePK) {
