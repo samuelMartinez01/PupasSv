@@ -64,6 +64,11 @@ public class ProductoDetalle implements Serializable {
     public ProductoDetalle(int idTipoProducto, long idProducto) {
         this.productoDetallePK = new ProductoDetallePK(idTipoProducto, idProducto);
     }
+
+    public ProductoDetalle() {
+
+    }
+
     @JsonbTransient
     public ProductoDetallePK getProductoDetallePK() {
         return productoDetallePK;
