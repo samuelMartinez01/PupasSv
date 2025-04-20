@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class ComboBean extends AbstractDataAccess<Combo> implements Serializable {
 
     @PersistenceContext(unitName = "PupaSV-PU")
-    private EntityManager em;
+    public EntityManager em;
 
     public ComboBean() {
         super(Combo.class);
@@ -43,7 +43,7 @@ public class ComboBean extends AbstractDataAccess<Combo> implements Serializable
     public List<ProductoComboDTO> findProductosByComboId(Long idCombo) {
         List<Object[]> productos = em.createNamedQuery("Combo.findProductosByComboId")
                 .setParameter("idCombo", idCombo)
-                .getResultList(); //Una tupla de 3 columnas segun productos
+                .getResultList();
 
         return productos.stream()
                 .map(p -> {
@@ -56,6 +56,7 @@ public class ComboBean extends AbstractDataAccess<Combo> implements Serializable
                     return dto;
                 }).collect(Collectors.toList());
     }
+
 
     /**
      * Convierte una entidad {@link Combo} a un objeto de transferencia de datos ({@link ComboDTO}),

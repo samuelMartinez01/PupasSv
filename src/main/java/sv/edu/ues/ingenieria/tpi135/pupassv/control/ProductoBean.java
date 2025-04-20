@@ -1,5 +1,4 @@
 package sv.edu.ues.ingenieria.tpi135.pupassv.control;
-
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;

@@ -15,6 +15,7 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  *
@@ -126,5 +127,7 @@ public class ComboDetalle implements Serializable {
     public String toString() {
         return "sv.edu.ues.ingenieria.tpi135.pupassv.entity.ComboDetalle[ comboDetallePK=" + comboDetallePK + " ]";
     }
-    
+
+    public void setPrecioSugerido(BigDecimal bigDecimal) {
+    }
 }

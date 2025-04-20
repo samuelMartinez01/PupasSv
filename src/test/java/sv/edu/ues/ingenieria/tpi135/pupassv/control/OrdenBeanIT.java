@@ -3,25 +3,23 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
- import java.nio.file.Paths;
 import java.util.Date;
-                import java.util.HashMap;
-                import static org.junit.jupiter.api.Assertions.assertEquals;
-                import static org.junit.jupiter.api.Assertions.assertNotNull;
-        import org.junit.jupiter.api.BeforeAll;
-                import org.junit.jupiter.api.MethodOrderer;
-                import org.junit.jupiter.api.Order;
-                import org.junit.jupiter.api.Test;
-                import org.junit.jupiter.api.TestInstance;
-                import org.junit.jupiter.api.TestMethodOrder;
-                import org.testcontainers.containers.GenericContainer;
-        import org.testcontainers.containers.Network;
-                import org.testcontainers.containers.PostgreSQLContainer;
-        import org.testcontainers.containers.wait.strategy.Wait;
-                import org.testcontainers.junit.jupiter.Container;
-                import org.testcontainers.junit.jupiter.Testcontainers;
-        import org.testcontainers.utility.MountableFile;
-                import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Orden;
+import java.util.HashMap;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Orden;
 
         /**
          *
@@ -95,9 +93,92 @@ import java.util.Date;
                 assertNotNull(nuevo.getIdOrden());
                 assertEquals(esperado, cut.count());
             }
+            @Test
+            @Order(3)
+            public void testFindById() {
+                System.out.println("Buscar por ID");
+                OrdenBean cut = new OrdenBean();
+                EntityManager em = emf.createEntityManager();
+                cut.em = em;
 
+                Orden resultado = cut.findById(1L); // suponiendo que existe un registro con ID 1
+                assertNotNull(resultado);
+                assertEquals(1L, resultado.getIdOrden());
+            }
 
+            @Test
+            @Order(4)
+            public void testFindRange() {
+                System.out.println("Buscar rango");
+                OrdenBean cut = new OrdenBean();
+                EntityManager em = emf.createEntityManager();
+                cut.em = em;
 
+                List<Orden> resultados = cut.findRange(0, 2); // del 0 al 2
+                assertNotNull(resultados);
+                assertEquals(2, resultados.size());
+            }
 
+            @Test
+            @Order(5)
+            public void testUpdate() {
+                System.out.println("Actualizar");
+                OrdenBean cut = new OrdenBean();
+                EntityManager em = emf.createEntityManager();
+                cut.em = em;
+
+                EntityTransaction tx = em.getTransaction();
+                Orden orden = cut.findById(1L);
+                orden.setSucursal("NUEVA");
+
+                try {
+                    tx.begin();
+                    Orden actualizado = cut.update(orden);
+                    tx.commit();
+                    assertNotNull(actualizado);
+                    assertEquals("NUEVA", actualizado.getSucursal());
+                } catch (Exception e) {
+                    tx.rollback();
+                    throw e;
+                }
+            }
+
+            @Test
+            @Order(6)
+            public void testDelete() {
+                System.out.println("Eliminar");
+                OrdenBean cut = new OrdenBean();
+                EntityManager em = emf.createEntityManager();
+                cut.em = em;
+
+                EntityTransaction tx = em.getTransaction();
+                Orden orden = new Orden();
+                orden.setAnulada(false);
+                orden.setFecha(new Date());
+                orden.setSucursal("ELIM");
+
+                try {
+                    tx.begin();
+                    cut.create(orden);
+                    tx.commit();
+                } catch (Exception ex) {
+                    tx.rollback();
+                }
+
+                Long idAEliminar = orden.getIdOrden();
+                assertNotNull(idAEliminar);
+
+                try {
+                    tx.begin();
+                    cut.delete(idAEliminar);
+                    tx.commit();
+                } catch (Exception ex) {
+                    tx.rollback();
+                    throw ex;
+                }
+
+                Orden eliminado = cut.findById(idAEliminar);
+                assertEquals(null, eliminado);
+            }
 
         }

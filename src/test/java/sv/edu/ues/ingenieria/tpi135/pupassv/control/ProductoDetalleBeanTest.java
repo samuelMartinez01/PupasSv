@@ -111,17 +111,12 @@ public class ProductoDetalleBeanTest {
         CriteriaDelete<ProductoDetalle> cdMock = Mockito.mock(CriteriaDelete.class);
         Root<ProductoDetalle> rootMock = Mockito.mock(Root.class);
 
-        Mockito.when(emMock.getCriteriaBuilder()).thenReturn(cbMock);
-        Mockito.when(cbMock.createCriteriaDelete(ProductoDetalle.class)).thenReturn(cdMock);
-        Mockito.when(cdMock.from(ProductoDetalle.class)).thenReturn(rootMock);
-
+        // ID nulo => IllegalArgumentException
         assertThrows(IllegalArgumentException.class, () -> {
             cut.delete(null);
         });
-        assertThrows(IllegalArgumentException.class, () -> {
-            cut.delete(0L);
-        });
 
+        // EM nulo => IllegalStateException
         cut.em = null;
         assertThrows(IllegalStateException.class, () -> {
             cut.delete(1L);
@@ -129,32 +124,41 @@ public class ProductoDetalleBeanTest {
 
         cut.em = emMock;
 
+        // EM.find devuelve entidad válida
         ProductoDetalle detalleMock = new ProductoDetalle(1L);
         Mockito.when(emMock.find(ProductoDetalle.class, 1L)).thenReturn(detalleMock);
 
+        Mockito.when(emMock.getCriteriaBuilder()).thenReturn(cbMock);
+        Mockito.when(cbMock.createCriteriaDelete(ProductoDetalle.class)).thenReturn(cdMock);
+        Mockito.when(cdMock.from(ProductoDetalle.class)).thenReturn(rootMock);
+
         Predicate predicateMock = Mockito.mock(Predicate.class);
-        Mockito.when(cbMock.equal(rootMock, detalleMock)).thenReturn(predicateMock);
+        Mockito.when(cbMock.equal(rootMock.get("idProducto"), 1L)).thenReturn(predicateMock);
         Mockito.when(cdMock.where(predicateMock)).thenReturn(cdMock);
 
         Query queryMock = Mockito.mock(Query.class);
         Mockito.when(emMock.createQuery(cdMock)).thenReturn(queryMock);
         Mockito.when(queryMock.executeUpdate()).thenReturn(1);
 
-        cut.delete(1L);
+        cut.delete(1L); // Debe ejecutarse sin excepción
 
         Mockito.verify(emMock, Mockito.times(1)).createQuery(cdMock);
         Mockito.verify(queryMock, Mockito.times(1)).executeUpdate();
 
+        // EM.find devuelve null => EntityNotFoundException
         Mockito.when(emMock.find(ProductoDetalle.class, 2L)).thenReturn(null);
         assertThrows(EntityNotFoundException.class, () -> {
             cut.delete(2L);
         });
 
+        // Fallo en executeUpdate => PersistenceException
+        Mockito.when(emMock.find(ProductoDetalle.class, 3L)).thenReturn(detalleMock);
         Mockito.when(queryMock.executeUpdate()).thenThrow(new PersistenceException());
         assertThrows(PersistenceException.class, () -> {
-            cut.delete(1L);
+            cut.delete(3L);
         });
     }
+
 
     @Test
     void update() {

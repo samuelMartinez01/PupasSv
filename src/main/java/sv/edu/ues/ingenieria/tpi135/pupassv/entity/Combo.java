@@ -42,9 +42,10 @@ import java.util.List;
                         "FROM Combo c " +
                         "JOIN c.comboDetalleList cd " +
                         "JOIN cd.producto p " +
-                        "LEFT JOIN p.productoPrecioList pp ON pp.fechaHasta IS NULL " +
-                        "WHERE c.idCombo = :idCombo AND cd.activo = true")})
-public class Combo implements Serializable {
+                        "LEFT JOIN p.productoPrecioList pp " +
+                        "WHERE c.idCombo = :idCombo AND cd.activo = true AND pp.fechaHasta IS NULL")})
+
+                public class Combo implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id

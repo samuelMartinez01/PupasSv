@@ -59,5 +59,14 @@ public class ProductoComboDTO {
         this.precioTotal = precioTotal;
     }
 
+    private Producto producto;
+
+    public Producto getProducto() {
+        return this.producto;
+    }
+
+    public void setProducto(Producto producto) {
+        this.producto = producto;
+    }
 
 }

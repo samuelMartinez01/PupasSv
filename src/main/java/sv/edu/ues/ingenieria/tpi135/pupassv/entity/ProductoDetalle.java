@@ -32,11 +32,12 @@ import java.io.Serializable;
     @NamedQuery(name = "ProductoDetalle.findByActivo", query = "SELECT p FROM ProductoDetalle p WHERE p.activo = :activo"),
     @NamedQuery(name = "ProductoDetalle.findByObservaciones", query = "SELECT p FROM ProductoDetalle p WHERE p.observaciones = :observaciones"),
         @NamedQuery(name = "ProductoDetalle.deleteByIdProducto",query = "DELETE  FROM ProductoDetalle p WHERE p.productoDetallePK.idProducto=:idProducto"),
-        @NamedQuery(name = "ProductoDetalle.deleteRelacion",query =
-                "DELETE  FROM ProductoDetalle p " +
-                        "WHERE p.productoDetallePK.idTipoProducto = :idTipoProducto " +
-                        "and p.productoDetallePK.idProducto=:idProducto")})
-public class ProductoDetalle implements Serializable {
+        @NamedQuery(
+                name = "ProductoDetalle.deleteRelacion",
+                query = "DELETE FROM ProductoDetalle pd WHERE pd.producto.idProducto = :idProducto AND pd.tipoProducto.idTipoProducto = :idTipoProducto"
+        )})
+
+        public class ProductoDetalle implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @EmbeddedId

@@ -22,6 +22,7 @@ import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -160,5 +161,7 @@ public class Producto implements Serializable {
     public String toString() {
         return "sv.edu.ues.ingenieria.tpi135.pupassv.entity.Producto[ idProducto=" + idProducto + " ]";
     }
-    
+
+    public void setPrecio(BigDecimal bigDecimal) {
+    }
 }

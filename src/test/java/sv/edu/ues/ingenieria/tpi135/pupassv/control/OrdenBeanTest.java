@@ -110,66 +110,58 @@ public class OrdenBeanTest {
     void delete() {
         System.out.println("OrdenBeanTest.delete");
         OrdenBean cut = new OrdenBean();
-
-        // 1. Configurar el mock del EntityManager
         EntityManager emMock = Mockito.mock(EntityManager.class);
         cut.em = emMock;
 
-        // 2. Mockear los componentes de Criteria API
         CriteriaBuilder cbMock = Mockito.mock(CriteriaBuilder.class);
         CriteriaDelete<Orden> cdMock = Mockito.mock(CriteriaDelete.class);
         Root<Orden> rootMock = Mockito.mock(Root.class);
 
-        Mockito.when(emMock.getCriteriaBuilder()).thenReturn(cbMock);
-        Mockito.when(cbMock.createCriteriaDelete(Orden.class)).thenReturn(cdMock);
-        Mockito.when(cdMock.from(Orden.class)).thenReturn(rootMock);
-
-        // 3. Prueba con ID nulo o inválido
+        // ID nulo => IllegalArgumentException
         assertThrows(IllegalArgumentException.class, () -> {
             cut.delete(null);
         });
-        assertThrows(IllegalArgumentException.class, () -> {
-            cut.delete(0L); // ID <= 0
-        });
 
-        // 4. Prueba cuando EntityManager no está disponible
+        // EM nulo => IllegalStateException
         cut.em = null;
         assertThrows(IllegalStateException.class, () -> {
             cut.delete(1L);
         });
-        cut.em = emMock; // Restaurar el mock
 
-        // 5. Mockear la entidad a eliminar
-        Orden ordenMock = new Orden(1L);
+        cut.em = emMock;
+
+        Orden ordenMock = new Orden();
+        ordenMock.setIdOrden(1L);
+
         Mockito.when(emMock.find(Orden.class, 1L)).thenReturn(ordenMock);
+        Mockito.when(emMock.getCriteriaBuilder()).thenReturn(cbMock);
+        Mockito.when(cbMock.createCriteriaDelete(Orden.class)).thenReturn(cdMock);
+        Mockito.when(cdMock.from(Orden.class)).thenReturn(rootMock);
 
-        // 6. Mockear la condición WHERE
         Predicate predicateMock = Mockito.mock(Predicate.class);
         Mockito.when(cbMock.equal(rootMock, ordenMock)).thenReturn(predicateMock);
         Mockito.when(cdMock.where(predicateMock)).thenReturn(cdMock);
 
-        // 7. Mockear la ejecución de la consulta
         Query queryMock = Mockito.mock(Query.class);
         Mockito.when(emMock.createQuery(cdMock)).thenReturn(queryMock);
-        Mockito.when(queryMock.executeUpdate()).thenReturn(1); // 1 fila afectada
+        Mockito.when(queryMock.executeUpdate()).thenReturn(1);
 
-        // 8. Ejecutar el delete exitoso
-        cut.delete(1L);
+        cut.delete(1L); // Sin excepción
 
-        // 9. Verificar que se ejecutó la consulta
         Mockito.verify(emMock, Mockito.times(1)).createQuery(cdMock);
         Mockito.verify(queryMock, Mockito.times(1)).executeUpdate();
 
-        // 10. Prueba cuando la entidad no existe
+        // EM.find devuelve null => EntityNotFoundException
         Mockito.when(emMock.find(Orden.class, 2L)).thenReturn(null);
         assertThrows(EntityNotFoundException.class, () -> {
             cut.delete(2L);
         });
 
-        // 11. Prueba error en persistencia
+        // Fallo en executeUpdate => PersistenceException
+        Mockito.when(emMock.find(Orden.class, 3L)).thenReturn(ordenMock);
         Mockito.when(queryMock.executeUpdate()).thenThrow(new PersistenceException());
         assertThrows(PersistenceException.class, () -> {
-            cut.delete(1L);
+            cut.delete(3L);
         });
     }
 

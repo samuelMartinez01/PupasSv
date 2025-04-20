@@ -147,31 +147,38 @@ public abstract class AbstractDataAccess<T> {
      * @throws IllegalStateException Si no hay EntityManager disponible.
      */
     public void delete(Object id) {
-        if (id == null || Long.parseLong(id.toString()) <= 0) {
-            throw new IllegalArgumentException("Id no valido ");
+        if (id == null) {
+            throw new IllegalArgumentException("Id no válido");
         }
-        EntityManager em = null;
-        em = getEntityManager();
+
+        EntityManager em = getEntityManager();
         if (em == null) {
             throw new IllegalStateException("No se pudo acceder al repositorio");
         }
+
         try {
             T registro = (T) em.find(tipoDato, id);
             if (registro == null) {
                 throw new EntityNotFoundException("Id not found");
             }
+
+            // Supone que la entidad tiene un campo llamado "id"
             CriteriaBuilder cb = em.getCriteriaBuilder();
             CriteriaDelete<T> cd = cb.createCriteriaDelete(this.tipoDato);
             Root<T> raiz = cd.from(this.tipoDato);
-            cd.where(cb.equal(raiz, registro));
+
+            // Necesitamos extraer el nombre de la PK (por reflexión o de forma fija)
+            // Aquí asumo que se llama "idProducto", puedes hacerlo más genérico si quieres
+            cd.where(cb.equal(raiz.get("idProducto"), id));
             em.createQuery(cd).executeUpdate();
-            return;
         } catch (EntityNotFoundException e) {
             throw e;
         } catch (PersistenceException e) {
             throw new PersistenceException(e);
         }
     }
+
+
 
     /**
      * Cuenta el número total de entidades.
