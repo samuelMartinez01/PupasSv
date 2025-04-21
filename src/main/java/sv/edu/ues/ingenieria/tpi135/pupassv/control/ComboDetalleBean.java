@@ -3,11 +3,9 @@ package sv.edu.ues.ingenieria.tpi135.pupassv.control;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ComboDetalle;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ComboDetallePK;
-import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ProductoDetalle;
 
 import java.io.Serializable;
 import java.util.Collections;
