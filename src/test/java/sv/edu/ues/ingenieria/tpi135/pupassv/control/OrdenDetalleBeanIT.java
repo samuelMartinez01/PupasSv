@@ -118,7 +118,7 @@ public class OrdenDetalleBeanIT {
             }
             fail("Error al insertar OrdenDetalle: " + e.getMessage());
         }
-        //Buscar
+        //Buscar primary key
         OrdenDetalle detalle = cut.findByPk(pk);
         assertNotNull(detalle);
         detalle.setObservaciones("Modificado desde IT");
