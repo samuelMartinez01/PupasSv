@@ -118,7 +118,7 @@ public class OrdenDetalleBeanIT {
             }
             fail("Error al insertar OrdenDetalle: " + e.getMessage());
         }
-        //Buscar
+        //Buscar la clave compuesta
         OrdenDetalle detalle = cut.findByPk(pk);
         assertNotNull(detalle);
         detalle.setObservaciones("Modificado desde IT");
