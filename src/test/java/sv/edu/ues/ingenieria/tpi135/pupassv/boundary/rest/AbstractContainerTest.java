@@ -34,11 +34,6 @@ public abstract class AbstractContainerTest {
         /** Red compartida a la que se conectan los 2 servidores */
         protected static Network red = Network.newNetwork();
 
-        static {
-                System.setProperty("testcontainers.ryuk.disabled", "true");
-                System.setProperty("testcontainers.checks.disable", "true");
-        }
-
         /**
          * Contenedor PostgreSQL configurado con Testcontainers.
          * Se inicializa con un script SQL para crear las tablas necesarias.
@@ -75,7 +70,7 @@ public abstract class AbstractContainerTest {
                         .withEnv("PGPORT", "5432")
                         .withEnv("PGSERVER", "db16")
                         .dependsOn(postgres)
-                        .waitingFor(Wait.forLogMessage(".*server is ready to run a smarter planet.*", 2));
+                        .waitingFor(Wait.forLogMessage(".*server is ready to run a smarter planet.*", 1));
 
         /**
          * Método de inicialización que configura el cliente HTTP y la URL base para las
@@ -89,5 +84,4 @@ public abstract class AbstractContainerTest {
                                 openliberty.getHost(),
                                 openliberty.getMappedPort(9080)));
         }
-
 }
