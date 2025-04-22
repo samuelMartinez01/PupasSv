@@ -95,30 +95,23 @@ pipeline {
             steps {
                 script {
                     sh '''
-                # Asegurarse de que el WAR esté construido
-                docker run --rm \
-                -v "$(pwd)":/app \
-                -w /app \
-                maven:3.9-eclipse-temurin-21 \
-                mvn package -DskipTests
+                        # Asegurarse de que el WAR esté construido
+                        docker run --rm \
+                        -v "$(pwd)":/app \
+                        -w /app \
+                        maven:3.9-eclipse-temurin-21 \
+                        mvn package -DskipTests
 
-                # Añadir un debug detallado para ver el proceso de TestContainers
-                export TESTCONTAINERS_RYUK_DISABLED=true
-                export TESTCONTAINERS_CHECKS_DISABLE=true
-
-                # Ejecutar pruebas de sistema con el perfil systempg
-                docker run --rm \
-                --network host \
-                -v "$(pwd)":/app \
-                -v /var/run/docker.sock:/var/run/docker.sock \
-                -e TESTCONTAINERS_HOST_OVERRIDE=localhost \
-                -e TESTCONTAINERS_RYUK_DISABLED=true \
-                -e TESTCONTAINERS_CHECKS_DISABLE=true \
-                -e DEBUG=true \
-                -w /app \
-                maven:3.9-eclipse-temurin-21 \
-                mvn -P systempg verify -Dmaven.failsafe.debug
-            '''
+                        # Ejecutar pruebas de sistema con el perfil systempg
+                        docker run --rm \
+                        --network host \
+                        -v "$(pwd)":/app \
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        -e TESTCONTAINERS_HOST_OVERRIDE=localhost \
+                        -w /app \
+                        maven:3.9-eclipse-temurin-21 \
+                        mvn -P systempg verify
+                    '''
                 }
             }
             post {
