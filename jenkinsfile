@@ -91,6 +91,36 @@ pipeline {
             }
         }
 
+        stage('Ejecutar Pruebas de Sistema') {
+            steps {
+                script {
+                    sh '''
+                        # Asegurarse de que el WAR esté construido
+                        docker run --rm \
+                        -v "$(pwd)":/app \
+                        -w /app \
+                        maven:3.9-eclipse-temurin-21 \
+                        mvn package -DskipTests
+
+                        # Ejecutar pruebas de sistema con el perfil systempg
+                        docker run --rm \
+                        --network host \
+                        -v "$(pwd)":/app \
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        -e TESTCONTAINERS_HOST_OVERRIDE=localhost \
+                        -w /app \
+                        maven:3.9-eclipse-temurin-21 \
+                        mvn -P systempg verify
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: '**/target/failsafe-reports/*SI.xml'
+                }
+            }
+        }
+
         stage('Construir y Desplegar Imagen Docker') {
             when {
                 expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
