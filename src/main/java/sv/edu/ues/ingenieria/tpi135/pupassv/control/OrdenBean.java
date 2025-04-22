@@ -24,8 +24,6 @@ import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Producto;
  *
  * @author samuel
  */
-
-
 @Stateless
 @LocalBean
 public class OrdenBean extends AbstractDataAccess<Orden> implements Serializable {
@@ -49,8 +47,7 @@ public class OrdenBean extends AbstractDataAccess<Orden> implements Serializable
      */
     public OrdenDTO convertirAOrdenDTO(Orden orden) {
         if (orden == null) {
-            return null;
-        }
+            return null;}
         OrdenDTO dto = new OrdenDTO();
         dto.setIdOrden(orden.getIdOrden());
         dto.setSucursal(orden.getSucursal());
@@ -60,9 +57,7 @@ public class OrdenBean extends AbstractDataAccess<Orden> implements Serializable
         dto.setDetalles(detallesDTO);
         dto.setTotal(calcularTotal(detallesDTO));
         return dto;
-    }
-
-    /**
+    }/**
      * Calcula el total para el Dto de Orden
      * @param detalles
      * @return Bigdecimal de total de la orden
@@ -72,12 +67,10 @@ public class OrdenBean extends AbstractDataAccess<Orden> implements Serializable
                 .map(detalle -> {
                     if (detalle.getPrecioUnitario() != null) {
                         return detalle.getPrecioUnitario().multiply(BigDecimal.valueOf(detalle.getCantidad()));
-                    }
-                    return BigDecimal.ZERO;
+                    }return BigDecimal.ZERO;
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-
     /**
      * Convirte los detalles (lista) de una ORden (Entity) a Detalles DTO
      * @param orden
@@ -87,9 +80,7 @@ public class OrdenBean extends AbstractDataAccess<Orden> implements Serializable
         return findDetallesByIdOrden(orden.getIdOrden()).stream()
                 .map(this::convertirDetalleADTO)
                 .collect(Collectors.toList());
-    }
-
-    /**
+    }/**
      * Convirte una OrdenDetalle (Entity) a un DetalleDTO (singular)
      * @param detalle
      * @return
@@ -97,21 +88,17 @@ public class OrdenBean extends AbstractDataAccess<Orden> implements Serializable
     private OrdenDetalleDTO convertirDetalleADTO(OrdenDetalle detalle) {
         OrdenDetalleDTO detalleDTO = new OrdenDetalleDTO();
         if (detalle.getOrdenDetallePK() != null) {
-            detalleDTO.setIdProductoPrecio(detalle.getOrdenDetallePK().getIdProductoPrecio());
-        }
+            detalleDTO.setIdProductoPrecio(detalle.getOrdenDetallePK().getIdProductoPrecio());}
         detalleDTO.setCantidad(detalle.getCantidad());
         detalleDTO.setPrecioUnitario(detalle.getPrecio());
         detalleDTO.setObservaciones(detalle.getObservaciones());
-
         if (detalle.getProductoPrecio() != null &&
                 detalle.getProductoPrecio().getIdProducto() != null) {
             Producto producto = detalle.getProductoPrecio().getIdProducto();
             detalleDTO.setIdProducto(producto.getIdProducto());
-            detalleDTO.setNombreProducto(producto.getNombre());
-        }
+            detalleDTO.setNombreProducto(producto.getNombre());}
         return detalleDTO;
     }
-
     /**
      * Busca detalle de una orden por medio del id de la orden
      * @param idOrden
@@ -120,16 +107,13 @@ public class OrdenBean extends AbstractDataAccess<Orden> implements Serializable
     public List<OrdenDetalle> findDetallesByIdOrden(Long idOrden) {
         if (idOrden == null) {
             return Collections.emptyList();
-        }
-        try {
+        }try {
             return em.createNamedQuery("OrdenDetalle.findProductosByIdOrden", OrdenDetalle.class)
                     .setParameter("idOrden", idOrden)
-                    .getResultList();
-        } catch (Exception e) {
+                    .getResultList();} catch (Exception e) {
             Logger.getLogger(OrdenBean.class.getName()).log(Level.SEVERE, "Error al buscar detalles con productos", e);
             return Collections.emptyList();
-        }
-    }
+        }}
 
     /**
      * Obtiene una referencia (LAZY) a una entidad {@link Orden}
@@ -140,5 +124,4 @@ public class OrdenBean extends AbstractDataAccess<Orden> implements Serializable
     public Orden getOrdenReference(Long idOrden) {
         return em.getReference(Orden.class, idOrden);
     }
-
 }

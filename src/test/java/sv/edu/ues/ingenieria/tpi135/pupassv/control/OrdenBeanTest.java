@@ -1,209 +1,129 @@
 package sv.edu.ues.ingenieria.tpi135.pupassv.control;
-import jakarta.persistence.*;
-import jakarta.persistence.criteria.*;
-import java.util.Arrays;
-import java.util.List;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import org.junit.jupiter.api.Test;
+import sv.edu.ues.ingenieria.tpi135.pupassv.DTO.OrdenDTO;
+import sv.edu.ues.ingenieria.tpi135.pupassv.entity.*;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
-import org.mockito.Mockito;
-import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Orden;
+import static org.mockito.Mockito.*;
 
-/**
- *
- * @author samuel
- */
 public class OrdenBeanTest {
-    
-    protected List<Orden> findResult;
-
-    public OrdenBeanTest() {
-        findResult = Arrays.asList(new Orden[]{new Orden(1l), new Orden(2l), new Orden(3l)});
-    }
-    /**
-     * Test of getEntityManager method, of class OrdenBean.
-     */
-    
-    @Test
-    void create() {
-        System.out.println("OrdenBeanTest create");
-        EntityManager mockEM = Mockito.mock(EntityManager.class);
-        Orden nuevo = new Orden();
-        OrdenBean cut = new OrdenBean();
-        assertThrows(IllegalArgumentException.class, () -> {
-            cut.create(null);
-        });
-        assertThrows(IllegalStateException.class, () -> {
-            cut.create(nuevo);
-        });
-        cut.em = mockEM;
-        cut.create(nuevo);
-    }
 
     @Test
-    void findById() {
-        System.out.println("OrdenBeanTest.findById");
-
-        // Configuración del mock
-        EntityManager mock = Mockito.mock(EntityManager.class);
+    void testGetEntityManager() {
+        EntityManager emMock = mock(EntityManager.class);
         OrdenBean cut = new OrdenBean();
-        cut.em = mock;
-
-        // 1. Test para ID existente
-        final Long idExistente = 1L;
-        Orden esperadoExistente = new Orden(idExistente);
-        Mockito.when(mock.find(Orden.class, idExistente)).thenReturn(esperadoExistente);
-
-        Orden resultadoExistente = cut.findById(idExistente);
-        assertNotNull(resultadoExistente);
-        assertEquals(esperadoExistente, resultadoExistente);
-
-        // 2. Test para ID que no existe
-        final Long idNoExistente = 999L;
-        Mockito.when(mock.find(Orden.class, idNoExistente)).thenReturn(null);
-
-        Orden resultadoNoExistente = cut.findById(idNoExistente);
-        assertNull(resultadoNoExistente);
-
-        // 3. Test para EntityManager no disponible
-        cut.em = null;
-        assertThrows(IllegalStateException.class, () -> {
-            cut.findById(idExistente);
-        });
-
-        // 4. Test para ID nulo
-        Orden resultadoIdNulo = cut.findById(null);
-        assertNull(resultadoIdNulo);
-    }
-    
-    @Test
-    void findRange() {
-        System.out.println("OrdenBeanTest.findRange");
-        int first = 0;
-        int max = 1000;
-        OrdenBean cut = new OrdenBean();
-        assertThrows(IllegalArgumentException.class, () -> {
-            cut.findRange(-1, 10);
-        });
-        assertThrows(IllegalArgumentException.class, () -> {
-            cut.findRange(10, -1);
-        });
-        assertThrows(IllegalStateException.class, () -> {
-            cut.findRange(first, max);
-        });
-        CriteriaBuilder cbMock = Mockito.mock(CriteriaBuilder.class);
-        CriteriaQuery<Orden> cqMock = Mockito.mock(CriteriaQuery.class);
-        Root rootMock = Mockito.mock(Root.class);
-        Mockito.when(cqMock.from(Orden.class)).thenReturn(rootMock);
-        EntityManager emMock = Mockito.mock(EntityManager.class);
-        TypedQuery tqMock = Mockito.mock(TypedQuery.class);
-        Mockito.when(tqMock.getResultList()).thenReturn(findResult);
-        Mockito.when(emMock.createQuery(cqMock)).thenReturn(tqMock);
-        Mockito.when(cbMock.createQuery(Orden.class)).thenReturn(cqMock);
-        Mockito.when(emMock.getCriteriaBuilder()).thenReturn(cbMock);
-        cut.em = emMock;
-        List<Orden> encontrados = cut.findRange(first, max);
-        assertNotNull(encontrados);
-        assertEquals(findResult.size(), encontrados.size());
-    }
-
-    @Test
-    void delete() {
-        System.out.println("OrdenBeanTest.delete");
-        OrdenBean cut = new OrdenBean();
-        EntityManager emMock = Mockito.mock(EntityManager.class);
         cut.em = emMock;
 
-        CriteriaBuilder cbMock = Mockito.mock(CriteriaBuilder.class);
-        CriteriaDelete<Orden> cdMock = Mockito.mock(CriteriaDelete.class);
-        Root<Orden> rootMock = Mockito.mock(Root.class);
+        assertEquals(emMock, cut.getEntityManager());
+    }
 
-        // ID nulo => IllegalArgumentException
-        assertThrows(IllegalArgumentException.class, () -> {
-            cut.delete(null);
-        });
-
-        // EM nulo => IllegalStateException
-        cut.em = null;
-        assertThrows(IllegalStateException.class, () -> {
-            cut.delete(1L);
-        });
-
-        cut.em = emMock;
-
+    @Test
+    void testGetOrdenReference() {
+        EntityManager emMock = mock(EntityManager.class);
         Orden ordenMock = new Orden();
-        ordenMock.setIdOrden(1L);
+        when(emMock.getReference(Orden.class, 1L)).thenReturn(ordenMock);
 
-        Mockito.when(emMock.find(Orden.class, 1L)).thenReturn(ordenMock);
-        Mockito.when(emMock.getCriteriaBuilder()).thenReturn(cbMock);
-        Mockito.when(cbMock.createCriteriaDelete(Orden.class)).thenReturn(cdMock);
-        Mockito.when(cdMock.from(Orden.class)).thenReturn(rootMock);
+        OrdenBean cut = new OrdenBean();
+        cut.em = emMock;
 
-        Predicate predicateMock = Mockito.mock(Predicate.class);
-        Mockito.when(cbMock.equal(rootMock, ordenMock)).thenReturn(predicateMock);
-        Mockito.when(cdMock.where(predicateMock)).thenReturn(cdMock);
+        Orden result = cut.getOrdenReference(1L);
 
-        Query queryMock = Mockito.mock(Query.class);
-        Mockito.when(emMock.createQuery(cdMock)).thenReturn(queryMock);
-        Mockito.when(queryMock.executeUpdate()).thenReturn(1);
+        assertNotNull(result);
+        assertEquals(ordenMock, result);
+    }
+    @Test
+    void testFindDetallesByIdOrden_Valid() {
+        EntityManager emMock = mock(EntityManager.class);
+        TypedQuery<OrdenDetalle> queryMock = mock(TypedQuery.class);
+        List<OrdenDetalle> detalles = Collections.singletonList(new OrdenDetalle());
 
-        cut.delete(1L); // Sin excepción
+        when(emMock.createNamedQuery("OrdenDetalle.findProductosByIdOrden", OrdenDetalle.class)).thenReturn(queryMock);
+        when(queryMock.setParameter("idOrden", 1L)).thenReturn(queryMock);
+        when(queryMock.getResultList()).thenReturn(detalles);
 
-        Mockito.verify(emMock, Mockito.times(1)).createQuery(cdMock);
-        Mockito.verify(queryMock, Mockito.times(1)).executeUpdate();
+        OrdenBean cut = new OrdenBean();
+        cut.em = emMock;
 
-        // EM.find devuelve null => EntityNotFoundException
-        Mockito.when(emMock.find(Orden.class, 2L)).thenReturn(null);
-        assertThrows(EntityNotFoundException.class, () -> {
-            cut.delete(2L);
-        });
+        List<OrdenDetalle> result = cut.findDetallesByIdOrden(1L);
 
-        // Fallo en executeUpdate => PersistenceException
-        Mockito.when(emMock.find(Orden.class, 3L)).thenReturn(ordenMock);
-        Mockito.when(queryMock.executeUpdate()).thenThrow(new PersistenceException());
-        assertThrows(PersistenceException.class, () -> {
-            cut.delete(3L);
-        });
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(queryMock).getResultList();
     }
 
     @Test
-    void update() {
-        System.out.println("OrdenBeanTest.update");
+    void testFindDetallesByIdOrden_NullId() {
         OrdenBean cut = new OrdenBean();
-        Orden modificado = new Orden(1l);
-        assertThrows(IllegalArgumentException.class, () -> {
-            cut.update(null);
-        });
-        assertThrows(IllegalStateException.class, () -> {
-            cut.update(modificado);
-        });
-        EntityManager emMock = Mockito.mock(EntityManager.class);
-        Mockito.when(emMock.merge(modificado)).thenReturn(modificado);
-        cut.em = emMock;
-        Orden resultado = cut.update(modificado);
-        assertNotNull(resultado);
-        assertEquals(modificado, resultado);
+        List<OrdenDetalle> result = cut.findDetallesByIdOrden(null);
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    void count() {
-        System.out.println("OrdenBeanTest.count");
+    void testFindDetallesByIdOrden_Exception() {
+        EntityManager emMock = mock(EntityManager.class);
+        when(emMock.createNamedQuery(anyString(), eq(OrdenDetalle.class)))
+                .thenThrow(RuntimeException.class);
+
         OrdenBean cut = new OrdenBean();
-        assertThrows(IllegalStateException.class, () -> {
-            cut.count();
-        });
-        EntityManager emMock = Mockito.mock(EntityManager.class);
-        CriteriaBuilder cbMock = Mockito.mock(CriteriaBuilder.class);
-        CriteriaQuery<Long> cqMock = Mockito.mock(CriteriaQuery.class);
-        Root rootMock = Mockito.mock(Root.class);
-        Expression exMock = Mockito.mock(Expression.class);
-        Mockito.when(cqMock.from(Orden.class)).thenReturn(rootMock);
-        Mockito.when(cbMock.count(rootMock)).thenReturn(exMock);
-        Mockito.when(cbMock.createQuery(Long.class)).thenReturn(cqMock);
-        TypedQuery tqMock = Mockito.mock(TypedQuery.class);
-        Mockito.when(tqMock.getSingleResult()).thenReturn(2L);
-        Mockito.when(emMock.createQuery(cqMock)).thenReturn(tqMock);
-        Mockito.when(emMock.getCriteriaBuilder()).thenReturn(cbMock);
         cut.em = emMock;
-        cut.count();
+
+        List<OrdenDetalle> result = cut.findDetallesByIdOrden(1L);
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
+
+    @Test
+    void testConvertirAOrdenDTO_Completo() {
+        Orden orden = new Orden();
+        orden.setIdOrden(1L);
+        orden.setSucursal("Sucursal A");
+        orden.setFecha(new java.util.Date());
+        orden.setAnulada(Boolean.FALSE);
+
+        OrdenDetalle detalle = new OrdenDetalle();
+        OrdenDetallePK pk = new OrdenDetallePK(1L, 2L);
+        detalle.setOrdenDetallePK(pk);
+        detalle.setCantidad(2);
+        detalle.setPrecio(BigDecimal.valueOf(5));
+        detalle.setObservaciones("Obs");
+
+        Producto producto = new Producto();
+        producto.setIdProducto(1L);
+        producto.setNombre("Producto A");
+
+        ProductoPrecio productoPrecio = new ProductoPrecio();
+        productoPrecio.setIdProducto(producto);
+        detalle.setProductoPrecio(productoPrecio);
+
+        EntityManager emMock = mock(EntityManager.class);
+        TypedQuery<OrdenDetalle> queryMock = mock(TypedQuery.class);
+        when(emMock.createNamedQuery("OrdenDetalle.findProductosByIdOrden", OrdenDetalle.class)).thenReturn(queryMock);
+        when(queryMock.setParameter("idOrden", 1L)).thenReturn(queryMock);
+        when(queryMock.getResultList()).thenReturn(Collections.singletonList(detalle));
+
+        OrdenBean cut = new OrdenBean();
+        cut.em = emMock;
+
+        OrdenDTO dto = cut.convertirAOrdenDTO(orden);
+
+        assertNotNull(dto);
+        assertEquals(1L, dto.getIdOrden());
+        assertEquals("Sucursal A", dto.getSucursal());
+        assertEquals(Boolean.FALSE, dto.getAnulada());
+        assertEquals(1, dto.getDetalles().size());
+        assertEquals(BigDecimal.valueOf(10), dto.getTotal());
+    }
+
+    @Test
+    void testConvertirAOrdenDTO_Null() {
+        OrdenBean cut = new OrdenBean();
+        assertNull(cut.convertirAOrdenDTO(null));
+    }
+
 }
