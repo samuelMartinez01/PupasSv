@@ -16,26 +16,30 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
+
 import java.io.Serializable;
 
 /**
- *
  * @author samuel
  */
 @Entity
 @Table(name = "producto_detalle")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "ProductoDetalle.findAll", query = "SELECT p FROM ProductoDetalle p"),
-    @NamedQuery(name = "ProductoDetalle.findByIdTipoProducto", query = "SELECT p FROM ProductoDetalle p WHERE p.productoDetallePK.idTipoProducto = :idTipoProducto"),
-    @NamedQuery(name = "ProductoDetalle.findByIdProducto", query = "SELECT p FROM ProductoDetalle p WHERE p.productoDetallePK.idProducto = :idProducto"),
-    @NamedQuery(name = "ProductoDetalle.findByActivo", query = "SELECT p FROM ProductoDetalle p WHERE p.activo = :activo"),
-    @NamedQuery(name = "ProductoDetalle.findByObservaciones", query = "SELECT p FROM ProductoDetalle p WHERE p.observaciones = :observaciones"),
-        @NamedQuery(name = "ProductoDetalle.deleteByIdProducto",query = "DELETE  FROM ProductoDetalle p WHERE p.productoDetallePK.idProducto=:idProducto"),
+        @NamedQuery(name = "ProductoDetalle.findAll", query = "SELECT p FROM ProductoDetalle p"),
+        @NamedQuery(name = "ProductoDetalle.findByIdTipoProducto", query = "SELECT p FROM ProductoDetalle p WHERE p.productoDetallePK.idTipoProducto = :idTipoProducto"),
+        @NamedQuery(name = "ProductoDetalle.findByIdProducto", query = "SELECT p FROM ProductoDetalle p WHERE p.productoDetallePK.idProducto = :idProducto"),
+        @NamedQuery(name = "ProductoDetalle.findByActivo", query = "SELECT p FROM ProductoDetalle p WHERE p.activo = :activo"),
+        @NamedQuery(name = "ProductoDetalle.findByObservaciones", query = "SELECT p FROM ProductoDetalle p WHERE p.observaciones = :observaciones"),
+        @NamedQuery(name = "ProductoDetalle.deleteByIdProducto", query = "DELETE  FROM ProductoDetalle p WHERE p.productoDetallePK.idProducto=:idProducto"),
         @NamedQuery(name = "ProductoDetalle.deleteRelacionTipoProducto",
                 query = "DELETE  FROM ProductoDetalle p WHERE p.productoDetallePK.idTipoProducto = :idTipoProducto and p.productoDetallePK.idProducto=:idProducto"),
         @NamedQuery(name = "ProductoDetalle.findTipoProducto",
-                query = "SELECT pd.tipoProducto FROM ProductoDetalle pd WHERE pd.productoDetallePK.idProducto = :idProducto AND pd.activo = true")})
+                query = "SELECT pd.tipoProducto FROM ProductoDetalle pd WHERE pd.productoDetallePK.idProducto = :idProducto AND pd.activo = true"),
+        @NamedQuery(
+                name = "ProductoDetalle.deleteRelacion",
+                query = "DELETE FROM ProductoDetalle pd WHERE pd.producto.idProducto = :idProducto AND pd.tipoProducto.idTipoProducto = :idTipoProducto"
+        )})
 public class ProductoDetalle implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -54,7 +58,10 @@ public class ProductoDetalle implements Serializable {
     @ManyToOne(optional = false)
     private TipoProducto tipoProducto;
 
-    public ProductoDetalle() {
+    protected ProductoDetalle() {
+    }
+
+    public ProductoDetalle(long l) {
     }
 
     public ProductoDetalle(ProductoDetallePK productoDetallePK) {
@@ -64,6 +71,7 @@ public class ProductoDetalle implements Serializable {
     public ProductoDetalle(int idTipoProducto, long idProducto) {
         this.productoDetallePK = new ProductoDetallePK(idTipoProducto, idProducto);
     }
+
     @JsonbTransient
     public ProductoDetallePK getProductoDetallePK() {
         return productoDetallePK;
@@ -130,5 +138,5 @@ public class ProductoDetalle implements Serializable {
     public String toString() {
         return "sv.edu.ues.ingenieria.tpi135.pupassv.entity.ProductoDetalle[ productoDetallePK=" + productoDetallePK + " ]";
     }
-    
+
 }

@@ -120,4 +120,49 @@ public class ProductoBean extends AbstractDataAccess<Producto> implements Serial
         }
     }
 
+    public EntityManager getEm() {
+        return em;
+    }
+
+    public void setEm(EntityManager em) {
+        this.em = em;
+    }
+
+    public void setEntityManager(EntityManager em) {
+    }
+    public void deleteRelacion(Long idProducto, Integer idTipoProducto) {
+        if (idProducto == null || idProducto <= 0) {
+            throw new IllegalArgumentException("Id invalido");
+        }
+        if (idTipoProducto == null || idTipoProducto <= 0) {
+            throw new IllegalArgumentException("id tipo invalido");
+        }
+        try {
+            int detalleBorrado = em.createNamedQuery("ProductoDetalle.deleteRelacion")
+                    .setParameter("idProducto", idProducto)
+                    .setParameter("idTipoProducto", idTipoProducto)
+                    .executeUpdate();
+            if (detalleBorrado == 1) {
+                delete(idProducto);
+                return;
+            }
+            throw new EntityNotFoundException("dNo se pudo eliminar la relacion");
+        } catch (EntityNotFoundException e) {
+            throw e;
+        } catch (PersistenceException e) {
+            throw new PersistenceException("Error al acceder a la base de datos", e);
+        }
+    }
+
+    public Long countByIdTipoProducto (Integer id, Integer first, Integer max) {
+        try {
+            return em.createNamedQuery("Producto.countByIdTipoProducto", Long.class)
+                    .setParameter("idTipoProducto", id)
+                    .getSingleResult();
+        } catch (Exception e) {
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
+        }
+        return 0L;
+    }
+
 }

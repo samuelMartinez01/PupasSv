@@ -52,7 +52,11 @@ import java.util.List;
         @NamedQuery(name = "ProductoPrecio.deleteRelacionPrecio",
                 query = "DELETE FROM ProductoPrecio p WHERE p.idProducto.idProducto = :idProducto"),
         @NamedQuery(name = "OrdenDetalle.deleteByProductoPrecioProducto",
-                query = "DELETE FROM OrdenDetalle od WHERE od.productoPrecio.idProducto.idProducto = :idProducto")})
+                query = "DELETE FROM OrdenDetalle od WHERE od.productoPrecio.idProducto.idProducto = :idProducto"),
+        @NamedQuery(name = "ProductoPrecio.findCurrentByProducto",
+                query = "SELECT p FROM ProductoPrecio p WHERE p.idProducto.idProducto = :idProducto "
+                        + "AND (p.fechaHasta IS NULL OR p.fechaHasta >= CURRENT_DATE) "
+                        + "ORDER BY p.fechaDesde DESC")})
 public class ProductoPrecio implements Serializable {
 
     private static final long serialVersionUID = 1L;

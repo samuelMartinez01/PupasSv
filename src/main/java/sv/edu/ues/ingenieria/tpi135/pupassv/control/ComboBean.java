@@ -8,10 +8,8 @@ import sv.edu.ues.ingenieria.tpi135.pupassv.DTO.ComboDTO;
 import sv.edu.ues.ingenieria.tpi135.pupassv.DTO.ProductoComboDTO;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Combo;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.Producto;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 /**
@@ -25,7 +23,7 @@ import java.util.stream.Collectors;
 public class ComboBean extends AbstractDataAccess<Combo> implements Serializable {
 
     @PersistenceContext(unitName = "PupaSV-PU")
-    private EntityManager em;
+    public EntityManager em;
 
     public ComboBean() {
         super(Combo.class);
@@ -46,18 +44,19 @@ public class ComboBean extends AbstractDataAccess<Combo> implements Serializable
         List<Object[]> productos = em.createNamedQuery("Combo.findProductosByComboId")
                 .setParameter("idCombo", idCombo)
                 .getResultList();
-        List<ProductoComboDTO> comboDTOS = new ArrayList<>();
-        for (Object[] p : productos) {
-            Producto producto = (Producto) p[0];
-            Integer cantidad = (Integer) p[1];
-            BigDecimal precioSugerido = (BigDecimal) p[2];
-            ProductoComboDTO dto = new ProductoComboDTO(producto, cantidad);
-            dto.setPrecioUnitario(precioSugerido);
-            dto.setPrecioTotal(precioSugerido.multiply(new BigDecimal(cantidad)));
-            comboDTOS.add(dto);
-        }
-        return comboDTOS;
+
+        return productos.stream()
+                .map(p -> {
+                    Producto producto = (Producto) p[0];
+                    Integer cantidad = (Integer) p[1];
+                    BigDecimal precioSugerido = (BigDecimal) p[2];
+                    ProductoComboDTO dto = new ProductoComboDTO(producto, cantidad);
+                    dto.setPrecioUnitario(precioSugerido);
+                    dto.setPrecioTotal(precioSugerido.multiply(new BigDecimal(cantidad)));
+                    return dto;
+                }).collect(Collectors.toList());
     }
+
 
     /**
      * Convierte una entidad {@link Combo} a un objeto de transferencia de datos ({@link ComboDTO}),
@@ -67,22 +66,19 @@ public class ComboBean extends AbstractDataAccess<Combo> implements Serializable
      * @return una instancia de {@link ComboDTO} con la información estructurada del combo o null en caso de que el combo sea null
      */
     public ComboDTO convertirAComboDTO(Combo combo) {
-        if (combo != null) {
-            ComboDTO dto = new ComboDTO();
-            dto.setIdCombo(combo.getIdCombo());
-            dto.setNombre(combo.getNombre());
-            dto.setActivo(combo.getActivo());
-            dto.setDescripcionPublica(combo.getDescripcionPublica());
-            List<ProductoComboDTO> productos = findProductosByComboId(combo.getIdCombo());
-            dto.setProductos(productos);
-            BigDecimal precioTotal = productos.stream()
-                    .map(ProductoComboDTO::getPrecioTotal)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            dto.setPrecioTotal(precioTotal);
-            return dto;
-        } else {
-            return null;
-        }
+        if (combo == null) return null;
+
+        ComboDTO dto = new ComboDTO();
+        dto.setIdCombo(combo.getIdCombo());
+        dto.setNombre(combo.getNombre());
+        dto.setActivo(combo.getActivo());
+        dto.setDescripcionPublica(combo.getDescripcionPublica());
+        List<ProductoComboDTO> productos = findProductosByComboId(combo.getIdCombo());
+        dto.setProductos(productos);
+        BigDecimal precioTotal = productos.stream()
+                .map(ProductoComboDTO::getPrecioTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        dto.setPrecioTotal(precioTotal);
+        return dto;
     }
 }
-

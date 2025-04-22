@@ -12,12 +12,15 @@
     <class>sv.edu.ues.ingenieria.tpi135.pupassv.entity.TipoProducto</class>
     <class>sv.edu.ues.ingenieria.tpi135.pupassv.entity.Orden</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
+
     <!-- proveedor de persitencia -->
     <properties>
       <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/PupasBd_tpi2025"/>
       <property name="jakarta.persistence.jdbc.user" value="postgres"/>
       <property name="jakarta.persistence.jdbc.password" value="abc123"/>
       <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+      <property name="eclipselink.logging.level" value="SEVERE"/>
+
     </properties>
   </persistence-unit>
 </persistence>

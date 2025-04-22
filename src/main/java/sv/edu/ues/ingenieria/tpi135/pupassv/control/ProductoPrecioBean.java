@@ -2,6 +2,8 @@ package sv.edu.ues.ingenieria.tpi135.pupassv.control;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import sv.edu.ues.ingenieria.tpi135.pupassv.DTO.ProductoPrecioDTO;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ProductoPrecio;
@@ -57,5 +59,26 @@ public class ProductoPrecioBean extends  AbstractDataAccess<ProductoPrecio> impl
         dto.setFechaHasta(entity.getFechaHasta());
         dto.setPrecioSugerido(entity.getPrecioSugerido());
         return dto;
+    }
+
+    public ProductoPrecio findPrice(Integer idProducto) {
+        if (idProducto == null) {
+            throw new IllegalArgumentException("ID de producto no puede ser nulo");
+        }
+        try {
+            return em.createNamedQuery("ProductoPrecio.findCurrentByProducto", ProductoPrecio.class)
+                    .setParameter("idProducto", idProducto)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            throw new NoResultException("No se encontró precio para el producto con ID: " + idProducto);
+        }
+    }
+
+    public List<ProductoPrecio> findByIdProducto(Integer idProducto, int first, int max) {
+        return em.createNamedQuery("ProductoPrecio.findByIdProducto", ProductoPrecio.class)
+                .setParameter("idProducto", idProducto)
+                .setFirstResult(first)
+                .setMaxResults(max)
+                .getResultList();
     }
 }

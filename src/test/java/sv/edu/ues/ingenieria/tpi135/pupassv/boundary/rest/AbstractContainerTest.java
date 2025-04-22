@@ -74,7 +74,8 @@ public abstract class AbstractContainerTest {
     public void init() {
         client = ClientBuilder.newClient();
         webTarget = client.target(String.format(
-                "http://localhost:%d/PupasSv-1.0-SNAPSHOT/v1/",
+                "http://%s:%d/PupasSv-1.0-SNAPSHOT/v1/",
+                openliberty.getHost(),
                 openliberty.getMappedPort(9080)));
     }
 }

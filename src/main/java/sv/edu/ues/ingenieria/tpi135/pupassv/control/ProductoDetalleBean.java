@@ -5,8 +5,8 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.PersistenceException;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ProductoDetalle;
+import sv.edu.ues.ingenieria.tpi135.pupassv.entity.ProductoDetallePK;
 import sv.edu.ues.ingenieria.tpi135.pupassv.entity.TipoProducto;
 
 import java.io.Serializable;
@@ -43,6 +43,13 @@ public class ProductoDetalleBean extends AbstractDataAccess<ProductoDetalle> imp
         } catch (Exception e) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error buscando tipoProducto", e);
             return null;
+        }
+    }
+
+    public void deletePk(ProductoDetallePK pk) {
+        ProductoDetalle entity = em.find(ProductoDetalle.class, pk);
+        if (entity != null) {
+            em.remove(entity);
         }
     }
 }
