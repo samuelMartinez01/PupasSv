@@ -1,0 +1,206 @@
+pipeline {
+    agent any
+
+    environment {
+        // Variables para la configuración de la base de datos
+        DB_HOST = 'db-postgres'
+        DB_PORT = '5432'
+        DB_NAME = 'TipicoSV'
+        DB_USER = 'postgres'
+        DB_PASSWORD = '12345'
+        // Nombre de la red Docker
+        DOCKER_NETWORK = 'tpi_pupa_network'
+    }
+
+    stages {
+        stage('Clonar Repositorio') {
+            steps {
+                git branch: 'DEV',
+                    url: 'https://github.com/samuelMartinez01/PupasSv.git',
+                    credentialsId: '239c835c-182e-4eeb-aaf1-cbe30d5c9ab0'
+            }
+        }
+
+        stage('Pruebas Unitarias') {
+            steps {
+                sh '''
+                    docker run --rm \
+                    -v "$(pwd)":/app \
+                    -w /app \
+                    maven:3.9-eclipse-temurin-21 \
+                    mvn clean test
+                '''
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                    archiveArtifacts allowEmptyArchive: true, artifacts: 'target/site/jacoco/**/*'
+                }
+            }
+        }
+
+        stage('Preparar Entorno de Integración') {
+            steps {
+                script {
+                    // Crear red Docker si no existe
+                    sh '''
+                        if ! docker network ls | grep -q ${DOCKER_NETWORK}; then
+                            docker network create ${DOCKER_NETWORK}
+                        fi
+                    '''
+
+                    // Iniciar contenedor PostgreSQL para pruebas
+                    sh '''
+                        docker run -d --name ${DB_HOST} \
+                        --network ${DOCKER_NETWORK} \
+                        -e POSTGRES_DB=${DB_NAME} \
+                        -e POSTGRES_USER=${DB_USER} \
+                        -e POSTGRES_PASSWORD=${DB_PASSWORD} \
+                        -p ${DB_PORT}:5432 \
+                        postgres:latest
+
+                        # Esperar a que PostgreSQL esté listo
+                        echo "Esperando a que PostgreSQL esté listo..."
+                        sleep 10
+                    '''
+                }
+            }
+        }
+
+        stage('Ejecutar Pruebas de Integración') {
+            steps {
+                sh '''
+            docker run --rm \
+            --network host \
+            -e DB_HOST=${DB_HOST} \
+            -e DB_PORT=${DB_PORT} \
+            -e DB_NAME=${DB_NAME} \
+            -e DB_USER=${DB_USER} \
+            -e DB_PASSWORD=${DB_PASSWORD} \
+            -v "$(pwd)":/app \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -w /app \
+            maven:3.9-eclipse-temurin-21 \
+            mvn -P integracionpg verify
+        '''
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: '**/target/failsafe-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Construir y Desplegar Imagen Docker') {
+            when {
+                expression { currentBuild.resultIsBetterOrEqualTo('SUCCESS') }
+            }
+            steps {
+                script {
+                    // Construir el WAR primero
+                    sh '''
+                docker run --rm \
+                -v "$(pwd)":/app \
+                -w /app \
+                maven:3.9-eclipse-temurin-21 \
+                mvn package -DskipTests
+            '''
+
+                    // Crear el archivo server.xml si no existe
+                    sh '''
+                if [ ! -f server.xml ]; then
+                    echo "Creando archivo server.xml predeterminado"
+                    cat > server.xml << 'EOF'
+<server description="Liberty Server para PupaSv">
+    <featureManager>
+        <feature>jakartaee-10.0</feature>
+    </featureManager>
+    <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9080" httpsPort="9443" />
+    <webApplication id="PupaSv" location="PupaSv-1.0-SNAPSHOT.war" contextRoot="/" />
+    <dataSource id="PostgresDS" jndiName="jdbc/PostgresDS">
+        <jdbcDriver libraryRef="PostgresLib" />
+        <properties.postgresql serverName="${env.DB_HOST}"
+                             portNumber="${env.DB_PORT}"
+                             databaseName="${env.DB_NAME}"
+                             user="${env.DB_USER}"
+                             password="${env.DB_PASSWORD}" />
+    </dataSource>
+    <library id="PostgresLib">
+        <fileset dir="${server.config.dir}/lib" includes="postgresql-*.jar"/>
+    </library>
+</server>
+EOF
+                fi
+
+                # Descargar el driver de PostgreSQL si es necesario
+                if [ ! -f postgresql-42.7.5.jar ]; then
+                    wget https://jdbc.postgresql.org/download/postgresql-42.7.5.jar
+                fi
+
+                # Crear el Dockerfile
+                echo "Creando Dockerfile"
+                cat > Dockerfile << 'EOF'
+FROM openliberty/open-liberty:latest
+COPY server.xml /config/
+COPY ./postgresql-42.7.5.jar /config/lib/
+# Exponer los puertos típicos de Open Liberty
+EXPOSE 9080 9443
+COPY ./target/PupasSv-1.0-SNAPSHOT.war /liberty/usr/servers/defaultServer/dropins/
+CMD ["server", "run", "defaultServer"]
+EOF
+            '''
+
+                    // Construir la imagen Docker
+                    sh 'docker build -t liberty_app:latest .'
+
+                    // Opcional: Ejecutar el contenedor para verificar
+                    sh '''
+                docker run -d --name liberty_app_test \
+                -p 9080:9080 \
+                -e DB_HOST=${DB_HOST} \
+                -e DB_NAME=${DB_NAME} \
+                -e DB_PORT=${DB_PORT} \
+                -e DB_USER=${DB_USER} \
+                -e DB_PASSWORD=${DB_PASSWORD} \
+                --network ${DOCKER_NETWORK} \
+                liberty_app:latest
+
+                # Esperar a que Liberty esté listo
+                echo "Esperando a que Liberty esté listo..."
+                sleep 20
+
+                # Verificar que la aplicación esté respondiendo
+                curl -f http://localhost:9080/ || echo "La aplicación no está disponible, pero continuaremos"
+
+                # Detener el contenedor de prueba
+                docker stop liberty_app_test
+                docker rm liberty_app_test
+            '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline ejecutado exitosamente.'
+        }
+        failure {
+            echo 'Pipeline fallido. Revisa los logs para más detalles.'
+        }
+        always {
+            // Limpiar recursos Docker
+            sh '''
+                # Detener y eliminar el contenedor PostgreSQL
+                docker stop ${DB_HOST} || true
+                docker rm ${DB_HOST} || true
+
+                # Limpiar otros contenedores
+                docker ps -aq -f status=exited | xargs -r docker rm || true
+
+                # No eliminamos la red por si es utilizada por otros servicios
+                # docker network rm ${DOCKER_NETWORK} || true
+            '''
+        }
+    }
+}
