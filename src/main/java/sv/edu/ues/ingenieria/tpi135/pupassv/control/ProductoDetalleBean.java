@@ -12,7 +12,7 @@ import sv.edu.ues.ingenieria.tpi135.pupassv.entity.TipoProducto;
 import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+//chepe
 @Stateless
 @LocalBean
 public class ProductoDetalleBean extends AbstractDataAccess<ProductoDetalle> implements Serializable {
