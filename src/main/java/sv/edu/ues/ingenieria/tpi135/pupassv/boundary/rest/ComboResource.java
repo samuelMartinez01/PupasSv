@@ -28,7 +28,7 @@ public class ComboResource implements Serializable {
     @Inject
     ProductoBean pBean;
     @Resource
-    UserTransaction utx; //Manejador de transacciones
+    UserTransaction utx;
 
 
     /**
