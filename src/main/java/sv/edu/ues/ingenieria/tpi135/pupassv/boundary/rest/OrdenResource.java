@@ -8,7 +8,6 @@ import jakarta.validation.constraints.Max;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -237,74 +236,73 @@ public class OrdenResource implements Serializable {
         return Response.status(422).header("Wrong-Parameter", "id:" + id).build();
     }
 
+
     /**
-     * Agrega un producto a una orden existente.
-     *
-     * @param idOrden Identificador de la orden.
-     * @param detalleDTO DTO con los datos del producto a agregar.
-     * @return Respuesta HTTP indicando éxito o error.
+     * Metodo para agregar productos a una orden
+     * @param ordenDTO
+     * @return
      */
     @POST
-    @Path("/{id}/productos")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addProducto(
-            @PathParam("id") Long idOrden,
-            OrdenDetalleDTO detalleDTO) {
-        if (idOrden != null
-                && idOrden > 0
-                && detalleDTO != null
-                && detalleDTO.getIdProducto() != null
-                && detalleDTO.getCantidad() > 0) {
-            try {
-                utx.begin();
-                Orden orden = oBean.findById(idOrden);
-                if (orden != null) {
-                    if (!Boolean.TRUE.equals(orden.getAnulada())) {
-                        ProductoPrecio productoPrecio = ppBean.findProductoPrecioByProducto(detalleDTO.getIdProducto());
-                        if (productoPrecio != null ) {
-                            OrdenDetallePK pk = new OrdenDetallePK(idOrden, productoPrecio.getIdProductoPrecio());
-                            OrdenDetalle existente = odBean.findByPk(pk);
-                            if (existente == null) {
-                                OrdenDetalle detalle = new OrdenDetalle(pk);
-                                detalle.setOrden(oBean.getOrdenReference(idOrden));
-                                detalle.setProductoPrecio(productoPrecio);
-                                detalle.setCantidad(detalleDTO.getCantidad());
-                                BigDecimal precio = detalleDTO.getPrecioUnitario() != null ?
-                                        detalleDTO.getPrecioUnitario() :
-                                        productoPrecio.getPrecioSugerido();
-                                detalle.setPrecio(precio);
-                                detalle.setObservaciones(detalleDTO.getObservaciones());
-                                odBean.create(detalle);
-                                utx.commit();
-                                return Response.ok().build();
-                            } else {
-                                throw new IllegalStateException("El producto ya está agregado a esta orden.");
-                            }
-                        } else {
-                            throw new RuntimeException("No se encontró precio activo para el producto con id: " + detalleDTO.getIdProducto());
-                        }
-                    } else {
-                        return Response.status(Response.Status.BAD_REQUEST).build();
-                    }
-                } else {
-                    return Response.status(Response.Status.NOT_FOUND).build();
+    public Response addProducto(OrdenDTO ordenDTO) {
+        if (ordenDTO == null || ordenDTO.getProductos() == null || ordenDTO.getProductos().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Debe proporcionar productos.").build();
+        }
+
+        try {
+            utx.begin();
+
+            Orden nuevaOrden = new Orden();
+            nuevaOrden.setSucursal(ordenDTO.getSucursal());
+            nuevaOrden.setFecha(new Date());
+            nuevaOrden.setAnulada(false);
+            oBean.create(nuevaOrden);
+
+            for (OrdenDetalleDTO p : ordenDTO.getProductos()) {
+                ProductoPrecio precio = ppBean.findProductoPrecioByProducto(p.getIdProducto());
+
+                if (precio == null) {
+                    throw new RuntimeException("No hay precio activo para el producto ID: " + p.getIdProducto());
                 }
-            } catch (Exception e) {
-                try {
-                    if (utx.getStatus() == Status.STATUS_ACTIVE) {
-                        utx.rollback();
-                    }
-                } catch (Exception ex) {
-                    Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error en rollback", ex);
-                }
-                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al agregar producto a orden", e);
-                return Response.serverError().build();
+
+                OrdenDetallePK pk = new OrdenDetallePK(nuevaOrden.getIdOrden(), precio.getIdProductoPrecio());
+                OrdenDetalle detalle = new OrdenDetalle(pk);
+                detalle.setOrden(nuevaOrden);
+                detalle.setProductoPrecio(precio);
+                detalle.setCantidad(p.getCantidad());
+                detalle.setPrecio(p.getPrecioUnitario() != null ? p.getPrecioUnitario() : precio.getPrecioSugerido());
+                detalle.setObservaciones(p.getObservaciones());
+                odBean.create(detalle);
             }
-        } else {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+
+            utx.commit();
+            return Response.ok().entity(nuevaOrden.getIdOrden()).build();
+
+        } catch (Exception e) {
+            try {
+                if (utx.getStatus() == Status.STATUS_ACTIVE) {
+                    utx.rollback();
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error en rollback", ex);
+            }
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al crear orden", e);
+            return Response.serverError().entity("Error interno al procesar la orden.").build();
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Metodo para eliminar un producto de una orden

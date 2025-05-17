@@ -15,6 +15,7 @@ public class OrdenDTO {
     private List<OrdenDetalleDTO> detalles;
     private BigDecimal total;
     private List<Pago> pagos;
+    private List<OrdenDetalleDTO> productos;
 
     public OrdenDTO() {
     }
@@ -73,5 +74,13 @@ public class OrdenDTO {
 
     public void setPagos(List<Pago> pagos) {
         this.pagos = pagos;
+    }
+
+    public List<OrdenDetalleDTO> getProductos() {
+        return productos;
+    }
+
+    public void setProductos(List<OrdenDetalleDTO> productos) {
+        this.productos = productos;
     }
 }
