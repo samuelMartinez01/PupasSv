@@ -117,6 +117,4 @@ public class ProductoPrecioBeanTest {
         field.set(bean, emMock);
         assertNotNull(bean.getEntityManager());
     }
-
-
 }
