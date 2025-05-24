@@ -62,6 +62,7 @@ public class PagoDetalleResource {
             if (pago != null) {
                 try {
                     utx.begin();
+                    detalle.setIdPago(pago);
                     pdBean.create(detalle);
                     utx.commit();
                     UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder()

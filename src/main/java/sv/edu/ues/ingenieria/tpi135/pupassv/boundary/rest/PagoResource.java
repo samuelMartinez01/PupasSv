@@ -86,7 +86,7 @@ public class PagoResource {
 
                 UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder()
                         .path(pago.getIdPago().toString());
-                return Response.created(uriBuilder.build()).build();
+                return Response.created(uriBuilder.build()).entity(pago).build();
             } catch (Exception e) {
                 try {
                     if (utx.getStatus() == jakarta.transaction.Status.STATUS_ACTIVE) {
