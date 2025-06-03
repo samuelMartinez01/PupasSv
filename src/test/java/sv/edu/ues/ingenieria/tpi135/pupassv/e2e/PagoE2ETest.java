@@ -5,9 +5,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.*;
 import java.time.Duration;
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 public class PagoE2ETest {
 
     private WebDriver driver;

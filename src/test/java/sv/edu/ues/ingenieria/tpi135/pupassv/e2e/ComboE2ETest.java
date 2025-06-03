@@ -1,16 +1,11 @@
 package sv.edu.ues.ingenieria.tpi135.pupassv.e2e;
-
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.*;
-
 import java.time.Duration;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 public class ComboE2ETest {
-
     private WebDriver driver;
     private WebDriverWait wait;
 

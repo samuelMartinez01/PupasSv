@@ -25,7 +25,6 @@ public class TipoProductoE2ETest {
             driver.quit();
         }
     }
-
     @Test
     @Order(1)
     public void testCargarTiposDeProducto() {
