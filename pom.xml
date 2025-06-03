@@ -127,6 +127,21 @@
     <artifactId>jersey-hk2</artifactId>
     <version>3.1.10</version>
 </dependency>
+        <!-- Selenium -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.21.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Testcontainers Selenium -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>selenium</artifactId>
+            <version>1.19.7</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     
     <profiles>
@@ -236,7 +251,7 @@
             <artifactId>liberty-maven-plugin</artifactId>
             <version>3.11.2</version>
             <configuration>
-                <installDirectory>/usr/local/openliberty25/wlp/</installDirectory>
+                <installDirectory>/usr/local/openliberty/wlp10_24_0_0_8/</installDirectory>
                 <serverName>tpiserver_2025</serverName>
             </configuration>
         </plugin>
