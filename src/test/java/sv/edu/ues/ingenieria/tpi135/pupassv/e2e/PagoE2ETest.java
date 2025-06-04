@@ -1,45 +1,58 @@
 package sv.edu.ues.ingenieria.tpi135.pupassv.e2e;
-
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.*;
-
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PagoE2ETest {
 
     private WebDriver driver;
     private WebDriverWait wait;
+    private PrintWriter logWriter;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws IOException {
+        File logFile = new File("target/logs/pago-e2e.log");
+        logFile.getParentFile().mkdirs(); // Crear directorio si no existe
+        logWriter = new PrintWriter(logFile);
+
         System.setProperty("webdriver.chrome.driver", "/usr/bin/chromedriver");
         driver = new ChromeDriver();
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         driver.get("http://localhost:3000/index.html");
+
+        log("Inicio de prueba E2E");
     }
 
     @AfterEach
     public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
+        log("Fin de prueba E2E");
+        if (logWriter != null) logWriter.close();
+        if (driver != null) driver.quit();
+    }
+
+    private void log(String msg) {
+        logWriter.println("[" + java.time.LocalDateTime.now() + "] " + msg);
+        logWriter.flush();
     }
 
     @Test
     public void testFlujoCompletoDePago() {
-        // === FLUJO DE PAGO ===
-
+        log("Haciendo clic en Crear Orden");
         WebElement btnCrearOrden = wait.until(ExpectedConditions.elementToBeClickable(By.id("crear-orden")));
         btnCrearOrden.click();
 
+        log("Esperando componente carrito-orden");
         WebElement carritoOrden = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("carrito-orden")));
 
+        log("Seleccionando primera categoría válida");
         Select selectCategorias = new Select(driver.findElement(By.id("select-categorias")));
         List<WebElement> categorias = selectCategorias.getOptions();
         String primeraCategoria = null;
@@ -51,6 +64,7 @@ public class PagoE2ETest {
                 break;
             }
         }
+        log("Categoría seleccionada: " + primeraCategoria);
         assertNotNull(primeraCategoria);
 
         WebElement selectProducto = wait.until(ExpectedConditions.elementToBeClickable(By.id("select-productos")));
@@ -59,11 +73,13 @@ public class PagoE2ETest {
         wait.until(driver -> finalProductos.getOptions().size() > 1);
         productos.selectByIndex(1);
 
+        log("Producto seleccionado y renderizado");
         WebElement detalles = driver.findElement(By.id("producto-detalle"));
         assertTrue(detalles.getText().toLowerCase().contains("precio"));
 
         WebElement btnAgregar = driver.findElement(By.id("btn-agregar-producto"));
         btnAgregar.click();
+        log("Producto agregado al pedido");
 
         String segundaCategoria = null;
         for (WebElement option : categorias) {
@@ -75,6 +91,7 @@ public class PagoE2ETest {
                 break;
             }
         }
+        log("Segunda categoría seleccionada: " + segundaCategoria);
         assertNotNull(segundaCategoria);
 
         selectProducto = wait.until(ExpectedConditions.elementToBeClickable(By.id("select-productos")));
@@ -84,36 +101,39 @@ public class PagoE2ETest {
         productos.selectByIndex(1);
         btnAgregar = driver.findElement(By.id("btn-agregar-producto"));
         btnAgregar.click();
+        log("Segundo producto agregado");
 
         WebElement btnPagar = (WebElement) ((JavascriptExecutor) driver)
                 .executeScript("return arguments[0].shadowRoot.querySelector('#pagar-orden')", carritoOrden);
         wait.until(ExpectedConditions.elementToBeClickable(btnPagar)).click();
+        log("Clic en botón Pagar");
 
         WebElement divPagos = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("pagos")));
         assertTrue(divPagos.isDisplayed());
+        log("Sección de pagos visible");
 
         WebElement radio = driver.findElement(By.cssSelector("input[name='metodo-pago'][value='Efectivo']"));
         radio.click();
+        log("Método de pago seleccionado: Efectivo");
         assertTrue(radio.isSelected());
 
         WebElement btnConfirmar = driver.findElement(By.id("btn-confirmar-pago"));
         btnConfirmar.click();
+        log("Clic en Confirmar Pago");
 
         wait.until(ExpectedConditions.alertIsPresent());
         Alert alert = driver.switchTo().alert();
+        log("Alerta recibida: " + alert.getText());
         assertTrue(alert.getText().toLowerCase().contains("pago exitoso"));
         alert.accept();
 
-        // === NUEVA SECUENCIA DE INTERACCIONES ===
+        // === NUEVA ORDEN ===
 
-        // 1. Crear nueva orden
+        log("Iniciando segunda orden");
         btnCrearOrden = wait.until(ExpectedConditions.elementToBeClickable(By.id("crear-orden")));
         btnCrearOrden.click();
-
-        // 2. Esperar <carrito-orden>
         carritoOrden = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("carrito-orden")));
 
-        // 3. Seleccionar categoría válida
         selectCategorias = new Select(driver.findElement(By.id("select-categorias")));
         categorias = selectCategorias.getOptions();
         String cat1 = null;
@@ -124,8 +144,8 @@ public class PagoE2ETest {
                 break;
             }
         }
+        log("Categoría seleccionada: " + cat1);
 
-        // 4. Seleccionar producto y esperar detalles
         selectProducto = wait.until(ExpectedConditions.elementToBeClickable(By.id("select-productos")));
         productos = new Select(selectProducto);
         Select finalProductos2 = productos;
@@ -135,15 +155,14 @@ public class PagoE2ETest {
         detalles = driver.findElement(By.id("producto-detalle"));
         assertTrue(detalles.isDisplayed());
 
-        // 4.5 Agregar al pedido
         btnAgregar = driver.findElement(By.id("btn-agregar-producto"));
         btnAgregar.click();
+        log("Producto agregado al nuevo pedido");
 
-        // 5. Limpiar selección
         WebElement btnLimpiar = driver.findElement(By.id("btn-limpiar-seleccion"));
         btnLimpiar.click();
+        log("Selección limpiada");
 
-        // 6. Seleccionar nueva categoría
         String cat2 = null;
         for (WebElement option : categorias) {
             if (!option.getText().equals(cat1) && !option.getText().toLowerCase().contains("seleccionar") &&
@@ -153,49 +172,46 @@ public class PagoE2ETest {
                 break;
             }
         }
+        log("Segunda categoría: " + cat2);
 
-        // 7. Seleccionar producto
         selectProducto = wait.until(ExpectedConditions.elementToBeClickable(By.id("select-productos")));
         productos = new Select(selectProducto);
         Select finalProductos3 = productos;
         wait.until(driver -> finalProductos3.getOptions().size() > 1);
         productos.selectByIndex(1);
 
-        // 7.5 Agregar segundo producto
         btnAgregar = driver.findElement(By.id("btn-agregar-producto"));
         btnAgregar.click();
+        log("Segundo producto agregado");
 
-        // 8. "+" dos veces al primer producto
         WebElement btnMas1 = (WebElement) ((JavascriptExecutor) driver)
                 .executeScript("return arguments[0].shadowRoot.querySelectorAll('.btn-mas')[0]", carritoOrden);
         btnMas1.click(); btnMas1.click();
+        log("Aumentado cantidad primer producto (+2)");
 
-        // 9. "+" cuatro veces al segundo producto
         WebElement btnMas2 = (WebElement) ((JavascriptExecutor) driver)
                 .executeScript("return arguments[0].shadowRoot.querySelectorAll('.btn-mas')[1]", carritoOrden);
         for (int i = 0; i < 4; i++) btnMas2.click();
+        log("Aumentado cantidad segundo producto (+4)");
 
-        // 10. "-" dos veces al segundo producto
         WebElement btnMenos2 = (WebElement) ((JavascriptExecutor) driver)
                 .executeScript("return arguments[0].shadowRoot.querySelectorAll('.btn-menos')[1]", carritoOrden);
         btnMenos2.click(); btnMenos2.click();
+        log("Reducida cantidad segundo producto (-2)");
 
-        // 11. Cancelar orden
         WebElement btnCancelar = (WebElement) ((JavascriptExecutor) driver)
                 .executeScript("return arguments[0].shadowRoot.querySelector('#cancelar-orden')", carritoOrden);
         btnCancelar.click();
+        log("Orden cancelada");
 
-        // 12. Confirmar alerta de cancelación
         wait.until(ExpectedConditions.alertIsPresent());
         alert = driver.switchTo().alert();
-        String alertaTexto = alert.getText().toLowerCase();
-        System.out.println("Alerta al cancelar: " + alertaTexto);
-        assertTrue(alertaTexto.contains("cancelar")); // usa una palabra clave más amplia
+        log("Alerta de cancelación: " + alert.getText());
+        assertTrue(alert.getText().toLowerCase().contains("cancelar"));
         alert.accept();
 
-
-        // 13. Limpiar selección (aunque orden ya no exista)
         btnLimpiar = driver.findElement(By.id("btn-limpiar-seleccion"));
         btnLimpiar.click();
+        log("Selección final limpiada");
     }
 }
