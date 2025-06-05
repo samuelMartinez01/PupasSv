@@ -2,6 +2,7 @@ package sv.edu.ues.ingenieria.tpi135.pupassv.e2e;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.*;
 import java.io.File;
 import java.io.IOException;
@@ -19,17 +20,24 @@ public class PagoE2ETest {
     @BeforeEach
     public void setup() throws IOException {
         File logFile = new File("target/logs/pago-e2e.log");
-        logFile.getParentFile().mkdirs(); // Crear directorio si no existe
+        logFile.getParentFile().mkdirs();
         logWriter = new PrintWriter(logFile);
 
-        System.setProperty("webdriver.chrome.driver", "/usr/bin/chromedriver");
-        driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--force-device-scale-factor=0.8");
+        options.addArguments("--window-size=1280,800");
+
+        driver = new ChromeDriver(options);
+        driver.manage().window().maximize();
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
         wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         driver.get("http://localhost:3000/index.html");
 
         log("Inicio de prueba E2E");
     }
+
+
 
     @AfterEach
     public void tearDown() {
