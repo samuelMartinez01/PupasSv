@@ -1,4 +1,5 @@
 package sv.edu.ues.ingenieria.tpi135.pupassv.e2e;
+
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -10,7 +11,9 @@ import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Tag;
 
+@Tag("e2e")
 public class PagoE2ETest {
 
     private WebDriver driver;
@@ -37,13 +40,13 @@ public class PagoE2ETest {
         log("Inicio de prueba E2E");
     }
 
-
-
     @AfterEach
     public void tearDown() {
         log("Fin de prueba E2E");
-        if (logWriter != null) logWriter.close();
-        if (driver != null) driver.quit();
+        if (logWriter != null)
+            logWriter.close();
+        if (driver != null)
+            driver.quit();
     }
 
     private void log(String msg) {
@@ -58,7 +61,8 @@ public class PagoE2ETest {
         btnCrearOrden.click();
 
         log("Esperando componente carrito-orden");
-        WebElement carritoOrden = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("carrito-orden")));
+        WebElement carritoOrden = wait
+                .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("carrito-orden")));
 
         log("Seleccionando primera categoría válida");
         Select selectCategorias = new Select(driver.findElement(By.id("select-categorias")));
@@ -146,7 +150,8 @@ public class PagoE2ETest {
         categorias = selectCategorias.getOptions();
         String cat1 = null;
         for (WebElement option : categorias) {
-            if (!option.getText().toLowerCase().contains("seleccionar") && !option.getText().toLowerCase().contains("combo")) {
+            if (!option.getText().toLowerCase().contains("seleccionar")
+                    && !option.getText().toLowerCase().contains("combo")) {
                 selectCategorias.selectByVisibleText(option.getText());
                 cat1 = option.getText();
                 break;
@@ -194,17 +199,20 @@ public class PagoE2ETest {
 
         WebElement btnMas1 = (WebElement) ((JavascriptExecutor) driver)
                 .executeScript("return arguments[0].shadowRoot.querySelectorAll('.btn-mas')[0]", carritoOrden);
-        btnMas1.click(); btnMas1.click();
+        btnMas1.click();
+        btnMas1.click();
         log("Aumentado cantidad primer producto (+2)");
 
         WebElement btnMas2 = (WebElement) ((JavascriptExecutor) driver)
                 .executeScript("return arguments[0].shadowRoot.querySelectorAll('.btn-mas')[1]", carritoOrden);
-        for (int i = 0; i < 4; i++) btnMas2.click();
+        for (int i = 0; i < 4; i++)
+            btnMas2.click();
         log("Aumentado cantidad segundo producto (+4)");
 
         WebElement btnMenos2 = (WebElement) ((JavascriptExecutor) driver)
                 .executeScript("return arguments[0].shadowRoot.querySelectorAll('.btn-menos')[1]", carritoOrden);
-        btnMenos2.click(); btnMenos2.click();
+        btnMenos2.click();
+        btnMenos2.click();
         log("Reducida cantidad segundo producto (-2)");
 
         WebElement btnCancelar = (WebElement) ((JavascriptExecutor) driver)

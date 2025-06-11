@@ -1,0 +1,34 @@
+# Ignorar archivos innecesarios para el build
+.git
+.gitignore
+README.md
+README-Docker.md
+Dockerfile
+docker-compose.yml
+
+# Directorios de Maven
+target/surefire-reports/
+target/failsafe-reports/
+target/jacoco-report/
+target/maven-archiver/
+target/maven-status/
+target/test-classes/
+
+# Archivos de IDE
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# Logs
+*.log
+
+# Archivos temporales
+*.tmp
+*.temp
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db

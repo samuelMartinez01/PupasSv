@@ -45,12 +45,12 @@
             <artifactId>jacoco-maven-plugin</artifactId>
             <version>0.8.12</version>
         </dependency>
-<dependency>
-    <groupId>org.glassfish.jersey.core</groupId>
-    <artifactId>jersey-common</artifactId>
-    <version>3.1.10</version>
-    <scope>test</scope>
-</dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-common</artifactId>
+            <version>3.1.10</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
@@ -63,7 +63,6 @@
             <artifactId>jersey-media-json-jackson</artifactId>
             <version>3.1.9</version>
         </dependency>
-
          <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
@@ -118,15 +117,15 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-    <groupId>com.fasterxml.jackson.module</groupId>
-    <artifactId>jackson-module-jaxb-annotations</artifactId>
-    <version>2.18.1</version>
-</dependency>
-<dependency>
-    <groupId>org.glassfish.jersey.inject</groupId>
-    <artifactId>jersey-hk2</artifactId>
-    <version>3.1.10</version>
-</dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jaxb-annotations</artifactId>
+            <version>2.18.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
+            <version>3.1.10</version>
+        </dependency>
         <!-- Selenium -->
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
@@ -152,15 +151,15 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <version>3.5.2</version>
-                                    <executions>
-                <execution>
-                    <goals>
-                        <goal>integration-test</goal>
-                        <goal>verify</goal>
-                    </goals>
-                    <phase>integration-test</phase>
-                </execution>
-            </executions>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                <phase>integration-test</phase>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>
@@ -191,7 +190,7 @@
                 </plugins>
             </build>
         </profile>
-        </profiles>
+    </profiles>
     
     <build>
         <plugins>
@@ -236,25 +235,31 @@
                     </execution>
                 </executions>
             </plugin>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.2.1</version>
-            <configuration>
-                <useModulePath>false</useModulePath>
-            </configuration>
-        </plugin>
-        
-          <plugin>
-            <groupId>io.openliberty.tools</groupId>
-            <artifactId>liberty-maven-plugin</artifactId>
-            <version>3.11.2</version>
-            <configuration>
-                <installDirectory>/usr/local/openliberty/wlp10_24_0_0_8/</installDirectory>
-                <serverName>tpiserver_2025</serverName>
-            </configuration>
-        </plugin>
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>3.2.1</version>
+    <configuration>
+        <useModulePath>false</useModulePath>
+        <excludedTags>e2e</excludedTags>
+        <excludes>
+            <exclude>**/e2e/**</exclude>
+        </excludes>
+    </configuration>
+</plugin>
 
-    </plugins>
-</build>
+
+
+
+            <plugin>
+                <groupId>io.openliberty.tools</groupId>
+                <artifactId>liberty-maven-plugin</artifactId>
+                <version>3.11.2</version>
+                <configuration>
+                    <installDirectory>/usr/local/openliberty/wlp10_24_0_0_8/</installDirectory>
+                    <serverName>tpiserver_2025</serverName>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
