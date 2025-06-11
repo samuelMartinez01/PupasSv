@@ -1,7 +1,6 @@
 # PupasSv - Dockerización
 
-## 📁 Estructura del Proyecto
-
+## estructura
 ```
 proyecto-raiz/
 ├── src/
@@ -15,37 +14,24 @@ proyecto-raiz/
 └── pom.xml
 ```
 
-## 🚀 Pasos para Dockerizar
-
-### ⚠️ Prerequisito IMPORTANTE
+### IMPORTANTE
 **Tu frontend debe estar corriendo en `localhost:3000` antes de ejecutar Docker Compose**
 
 ### 1. Preparar el entorno
-```bash
-# 1. Asegúrate de que tu frontend esté corriendo
-# En otro terminal o repositorio:
-# npm start (o el comando que uses para tu frontend)
-# Verificar: http://localhost:3000
 
 # 2. Construir el WAR del backend
 mvn clean package
 
 # 3. Verificar que tienes el script SQL
 ls tipicos_tpi135_2025.sql
-```
 
 ### 2. Ejecutar con Docker Compose
-```bash
-# Un solo comando para todo
 docker-compose up -d --build
 ```
 
 ### 3. Para desarrollo (con logs visibles)
 ```bash
 docker-compose up --build
-```
-
-## 📋 Orden de Ejecución
 
 La configuración garantiza este orden:
 
@@ -55,7 +41,7 @@ La configuración garantiza este orden:
 
 Si el frontend no está corriendo, verás un error claro y el backend no se iniciará.
 
-## 📋 Qué hace la configuración
+## pasos de lo que hace este doker
 
 ### PostgreSQL
 - **Crea** la base de datos `tipicos_tpi135`
@@ -86,9 +72,6 @@ DB_USER: postgres         # Usuario de la base de datos
 DB_PASSWORD: abc123       # Contraseña de la base de datos
 ```
 
-## 📊 Comandos Útiles
-
-```bash
 # Construir y ejecutar todo
 docker-compose up -d --build
 
@@ -110,54 +93,8 @@ docker-compose ps
 # Detener servicios
 docker-compose down
 
-# Detener y eliminar volúmenes (⚠️ elimina datos)
+# Detener y eliminar volúmenes
 docker-compose down -v
 
 # Reconstruir solo la aplicación
 docker-compose build --no-cache pupas-backend
-```
-
-## 🌍 Acceso
-
-- **Aplicación**: http://localhost:9080
-- **PostgreSQL**: localhost:5432
-- **Logs de Liberty**: Volumen `liberty_logs`
-- **Datos de PostgreSQL**: Volumen `postgres_data`
-
-## 🐛 Troubleshooting
-
-### Si el verificador de frontend falla:
-```bash
-# Ver logs específicos
-docker-compose logs frontend-checker
-
-# Verificar manualmente si tu frontend está corriendo
-curl http://localhost:3000
-
-# Si tu frontend usa una ruta específica para health check:
-# Modifica el docker-compose.yml en la línea del curl
-```
-
-### Si la aplicación no conecta a la BD:
-1. Verificar que PostgreSQL esté corriendo: `docker-compose logs postgres`
-2. Verificar que el script SQL se ejecutó: `docker-compose logs postgres | grep init`
-3. Verificar conexión desde el contenedor de Liberty:
-   ```bash
-   docker exec -it pupas_backend /bin/bash
-   # Dentro del contenedor, verificar conectividad
-   ```
-
-### Si hay errores de permisos:
-```bash
-# Verificar permisos del script
-chmod +x deploy.sh
-chmod 644 tipicos_tpi135_2025.sql
-```
-
-### Para reiniciar completamente:
-```bash
-docker-compose down -v  # ⚠️ Elimina todos los datos
-docker-compose up -d --build  # Reconstruir todo
-
-//para pruebas e2e mvn test -Dtags=e2e
-```
