@@ -12,7 +12,6 @@ import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.Tag;
 
 @Tag("e2e")
 public class PagoE2ETest {
@@ -28,7 +27,11 @@ public class PagoE2ETest {
         logWriter = new PrintWriter(logFile);
 
         // Configurar WebDriverManager para manejar automáticamente el driver
-        WebDriverManager.chromedriver().setup();
+        // Forzar descarga de la versión más reciente compatible
+        WebDriverManager.chromedriver()
+                .clearDriverCache() // Limpiar cache de drivers antiguos
+                .forceDownload() // Forzar descarga nueva
+                .setup();
 
         ChromeOptions options = new ChromeOptions();
 
@@ -38,7 +41,7 @@ public class PagoE2ETest {
         if (isHeadless) {
             log("Ejecutando en modo headless");
             // Configuraciones para modo headless
-            options.addArguments("--headless");
+            options.addArguments("--headless=new"); // Usar nuevo modo headless
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
             options.addArguments("--disable-gpu");
@@ -47,9 +50,11 @@ public class PagoE2ETest {
             options.addArguments("--allow-running-insecure-content");
             options.addArguments("--remote-allow-origins=*");
             options.addArguments("--window-size=1920,1080");
+            options.addArguments("--disable-background-timer-throttling");
+            options.addArguments("--disable-backgrounding-occluded-windows");
+            options.addArguments("--disable-renderer-backgrounding");
         } else {
             log("Ejecutando en modo con interfaz gráfica");
-            // Configuraciones para modo con GUI (local)
             options.addArguments("--force-device-scale-factor=0.8");
             options.addArguments("--window-size=1280,800");
         }
@@ -59,7 +64,16 @@ public class PagoE2ETest {
         options.setExperimentalOption("useAutomationExtension", false);
         options.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
 
-        driver = new ChromeDriver(options);
+        try {
+            driver = new ChromeDriver(options);
+        } catch (SessionNotCreatedException e) {
+            log("Error al crear sesión ChromeDriver: " + e.getMessage());
+            // Intentar una vez más con configuración alternativa
+            WebDriverManager.chromedriver()
+                    .browserVersion("137.0.7151.68") // Especificar versión exacta
+                    .setup();
+            driver = new ChromeDriver(options);
+        }
 
         if (!isHeadless) {
             driver.manage().window().maximize();
