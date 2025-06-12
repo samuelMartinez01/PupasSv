@@ -5,6 +5,7 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.*;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -26,18 +27,69 @@ public class PagoE2ETest {
         logFile.getParentFile().mkdirs();
         logWriter = new PrintWriter(logFile);
 
+        // Configurar WebDriverManager para manejar automáticamente el driver
+        WebDriverManager.chromedriver().setup();
+
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--force-device-scale-factor=0.8");
-        options.addArguments("--window-size=1280,800");
+
+        // Detectar si estamos en un entorno CI/CD o si se especifica headless
+        boolean isHeadless = isRunningInCI() || isHeadlessRequested();
+
+        if (isHeadless) {
+            log("Ejecutando en modo headless");
+            // Configuraciones para modo headless
+            options.addArguments("--headless");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--disable-gpu");
+            options.addArguments("--disable-extensions");
+            options.addArguments("--disable-web-security");
+            options.addArguments("--allow-running-insecure-content");
+            options.addArguments("--remote-allow-origins=*");
+            options.addArguments("--window-size=1920,1080");
+        } else {
+            log("Ejecutando en modo con interfaz gráfica");
+            // Configuraciones para modo con GUI (local)
+            options.addArguments("--force-device-scale-factor=0.8");
+            options.addArguments("--window-size=1280,800");
+        }
+
+        // Configuraciones comunes
+        options.addArguments("--disable-blink-features=AutomationControlled");
+        options.setExperimentalOption("useAutomationExtension", false);
+        options.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
 
         driver = new ChromeDriver(options);
-        driver.manage().window().maximize();
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
+        if (!isHeadless) {
+            driver.manage().window().maximize();
+        }
+
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
         wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         driver.get("http://localhost:3000/index.html");
 
         log("Inicio de prueba E2E");
+    }
+
+    /**
+     * Detecta si estamos ejecutando en un entorno CI/CD
+     */
+    private boolean isRunningInCI() {
+        return System.getenv("CI") != null ||
+                System.getenv("JENKINS_URL") != null ||
+                System.getenv("GITHUB_ACTIONS") != null ||
+                System.getenv("GITLAB_CI") != null ||
+                System.getenv("BAMBOO_BUILD_NUMBER") != null;
+    }
+
+    /**
+     * Detecta si se ha solicitado específicamente el modo headless
+     */
+    private boolean isHeadlessRequested() {
+        return "true".equals(System.getProperty("headless")) ||
+                "true".equals(System.getenv("HEADLESS")) ||
+                "true".equals(System.getProperty("chrome.headless"));
     }
 
     @AfterEach
@@ -50,8 +102,11 @@ public class PagoE2ETest {
     }
 
     private void log(String msg) {
-        logWriter.println("[" + java.time.LocalDateTime.now() + "] " + msg);
+        String message = "[" + java.time.LocalDateTime.now() + "] " + msg;
+        logWriter.println(message);
         logWriter.flush();
+        // También imprimir en consola para debugging en CI
+        System.out.println(message);
     }
 
     @Test
