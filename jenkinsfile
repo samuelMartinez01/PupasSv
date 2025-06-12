@@ -17,7 +17,7 @@ pipeline {
             steps {
                 git branch: 'DEV',
                     url: 'https://github.com/samuelMartinez01/PupasSv.git',
-                    credentialsId: '8a27c4d3-2bcf-4800-8d35-69f7a2cabc3b'
+                    credentialsId: '---------'
             }
         }
 
