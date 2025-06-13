@@ -49,7 +49,7 @@ services:
     depends_on:
       database16:
         condition: service_healthy
+    # Ya NO necesitas montar el .war desde el host
     volumes:
-      - ./target/PupasSv-1.0-SNAPSHOT.war:/opt/ol/wlp/usr/servers/tpiserver_2025/dropins/PupasSv-1.0-SNAPSHOT.war
       - ./server.xml:/opt/ol/wlp/usr/servers/tpiserver_2025/server.xml
       - ./postgresql-42.7.5.jar:/opt/ol/wlp/lib/postgresql-42.7.5.jar

@@ -97,4 +97,4 @@ docker-compose down
 docker-compose down -v
 
 # Reconstruir solo la aplicación
-docker-compose build --no-cache pupas-backend
+docker-compose build --no-cache pupas-backend.
