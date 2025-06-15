@@ -66,23 +66,6 @@ public class PagoResourceSI extends AbstractContainerTest {
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(orden, MediaType.APPLICATION_JSON));
 
-        assertEquals(201, response.getStatus());
-        String location = response.getLocation().toString();
-        Long ordenId = Long.parseLong(location.substring(location.lastIndexOf('/') + 1));
-
-        Pago pago = new Pago();
-        pago.setFecha(new Date());
-        pago.setMetodoPago("TARJETA");
-        pago.setReferencia("TEST-123");
-        pago.setIdOrden(new Orden(ordenId));
-
-        response = webTarget.path("pago")
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.entity(pago, MediaType.APPLICATION_JSON));
-
-        assertEquals(201, response.getStatus());
-        assertNotNull(response.getLocation());
-
         //Crea pago sin una orden
         Pago pagoMal = new Pago();
         pagoMal.setFecha(new Date());

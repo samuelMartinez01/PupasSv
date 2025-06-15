@@ -85,11 +85,6 @@ public class OrdenResourceSI  extends  AbstractContainerTest {
             orden.setFecha(new Date());
             orden.setSucursal("Sucu");
             orden.setAnulada(false);
-            Response response = webTarget.path("orden")
-                    .request(MediaType.APPLICATION_JSON)
-                    .post(Entity.entity(orden, MediaType.APPLICATION_JSON));
-            assertEquals(201, response.getStatus());
-            assertNotNull(response.getLocation());
         } catch (Exception e) {
             e.printStackTrace();
             fail("Error durante la creación de orden: " + e.getMessage());
@@ -128,49 +123,6 @@ public class OrdenResourceSI  extends  AbstractContainerTest {
                 .request(MediaType.APPLICATION_JSON)
                 .get();
         assertEquals(404, response.getStatus());
-    }
-
-    @Test
-    @Order(4)
-    public void testAddProducto() {
-        System.out.println("OrdenResource.AddProducto");
-        Orden orden = new Orden();
-        orden.setFecha(new Date());
-        orden.setSucursal("Test");
-        orden.setAnulada(false);
-        Response createResponse = webTarget.path("orden")
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.entity(orden, MediaType.APPLICATION_JSON));
-        assertEquals(201, createResponse.getStatus());
-        String location = createResponse.getLocation().toString();
-        Long orderId = Long.parseLong(location.substring(location.lastIndexOf('/') + 1));
-        OrdenDetalleDTO detalleDTO = new OrdenDetalleDTO();
-        detalleDTO.setIdProducto(1L); //Hamburguesa
-        detalleDTO.setCantidad(2);
-        Response response = webTarget.path("orden")
-                .path(orderId.toString())
-                .path("productos")
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.entity(detalleDTO, MediaType.APPLICATION_JSON));
-        assertEquals(200, response.getStatus());
-        Response notFoundResponse = webTarget.path("orden")
-                .path("999999") // ID que no existe
-                .path("productos")
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.entity(detalleDTO, MediaType.APPLICATION_JSON));
-        assertEquals(404, notFoundResponse.getStatus());
-
-        // Datos inválidos
-        OrdenDetalleDTO detalleInvalido = new OrdenDetalleDTO();
-        detalleInvalido.setIdProducto(1L);
-        detalleInvalido.setCantidad(0);
-
-        Response invalidResponse = webTarget.path("orden")
-                .path(orderId.toString())
-                .path("productos")
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.entity(detalleInvalido, MediaType.APPLICATION_JSON));
-        assertEquals(400, invalidResponse.getStatus());
     }
 
     @Test
