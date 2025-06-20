@@ -3,7 +3,7 @@
  * @param <T> Tipo de la entidad gestionada.
  */
 package sv.edu.ues.ingenieria.tpi135.pupassv.control;
-//Hola psg
+//Hola botafogo
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceException;
