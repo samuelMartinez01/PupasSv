@@ -25,6 +25,8 @@ public class TipoProductoBeanTest {
     @Test
     void create() {
         System.out.println("TipoProductoBeanTest create");
+        System.out.println("--------------------");
+         System.out.println("20 de junio del 2025");
         EntityManager mockEM = Mockito.mock(EntityManager.class);
         TipoProducto nuevo = new TipoProducto();
         TipoProductoBean cut = new TipoProductoBean();
