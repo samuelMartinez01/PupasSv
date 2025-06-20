@@ -60,6 +60,7 @@ public class TipoProductoBeanIT {
     @Test
     @Order(2)
     public void testInsert() {
+         System.out.println("20 de junio");
         System.out.println("TipoProductoBeanIT.testInsert");
         TipoProductoBean cut = new TipoProductoBean();
         EntityManager em = emf.createEntityManager();
